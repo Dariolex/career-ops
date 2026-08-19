@@ -428,6 +428,7 @@ export const USER_PATHS = [
   'jds/',
   'writing-samples/',
   'config/plugins.yml',
+  'config/local-paths.txt',
   'plugins.local/',
   'plugins.lock',
   'opencode.json',
