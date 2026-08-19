@@ -1,0 +1,80 @@
+candidate:
+  full_name: "DA COMPLETARE"
+  email: "dariocav@hotmail.it"
+  phone: "DA COMPLETARE"
+  location: "Italy"
+  linkedin: "DA COMPLETARE"
+  photo: ""
+
+target_roles:
+  primary:
+    - "AI Governance Counsel"
+    - "AI Governance Manager"
+    - "AI Regulatory Counsel"
+    - "Senior Privacy Counsel"
+    - "Data Protection Officer"
+    - "Privacy Officer"
+    - "AI Compliance Manager"
+    - "Technology Counsel"
+    - "Cybersecurity & Privacy Counsel"
+  archetypes:
+    - name: "AI Governance / Responsible AI"
+      level: "Senior/Manager"
+      fit: "primary"
+    - name: "Privacy & Data Protection"
+      level: "Senior/DPO"
+      fit: "primary"
+    - name: "Technology & Cyber Law Counsel"
+      level: "Senior"
+      fit: "secondary"
+    - name: "Regulatory Affairs / Compliance"
+      level: "Manager"
+      fit: "adjacent"
+
+narrative:
+  headline: "DA COMPLETARE"
+  exit_story: "DA COMPLETARE"
+  superpowers:
+    - "DA COMPLETARE"
+
+compensation:
+  target_range: "DA COMPLETARE"
+  currency: "EUR"
+  minimum: "DA COMPLETARE"
+
+location:
+  country: "Italy"
+  city: "DA COMPLETARE"
+  timezone: "CET"
+  visa_status: "DA COMPLETARE"
+  authorized_in: ["Italy", "European Union"]
+  needs_sponsorship: false
+
+language:
+  output: it
+
+spend_tier: standard
+
+pipeline:
+  triage_threshold: 3.5
+  triage_min_urls: 5
+
+# ── Career Score 0–100 (estensione di questo fork) ──────────────────────────
+career_score:
+  thresholds:
+    apply: 75
+    consider: 60
+    low_priority: 45
+  # Tetto di valutazioni complete per run: la valvola di controllo costi.
+  max_full_evaluations: 15
+  # Ordine di preferenza geografica. Alimenta la dimensione "geography".
+  geography_priority:
+    - "Italy"
+    - "Ireland"
+    - "Netherlands"
+    - "Germany"
+    - "Switzerland"
+    - "European Union"
+    - "United Kingdom"
+    - "Remote Europe"
+    - "International"

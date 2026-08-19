@@ -1,0 +1,16 @@
+# local-paths.txt — file di proprietà di questo fork (Dario Career Intelligence).
+# Ogni percorso qui elencato è trattato come cv.md: `update-system.mjs apply`
+# non lo tocca mai, e validate-system-paths-coverage.mjs non lo segnala.
+
+career-score.mjs
+career-score.test.mjs
+anthropic-eval.mjs
+run-evaluations.mjs
+daily-digest.mjs
+daily-digest.test.mjs
+obsidian-export.mjs
+obsidian-export.test.mjs
+modes/_career-score.md
+CAREER-INTEL.md
+obsidian/
+reports/daily/
