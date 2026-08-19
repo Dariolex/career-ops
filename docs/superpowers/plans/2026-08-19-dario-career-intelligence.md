@@ -1482,7 +1482,7 @@ function renderEntry(entry) {
     `**${entry.title}** · ${entry.company}`,
     `${entry.location || 'Sede non indicata'}`,
     '',
-    `Retribuzione: ${entry.salary || '_non dichiarata dall\'annuncio_'}`,
+    `Retribuzione: ${entry.salary || '_non dichiarato dall\'annuncio_'}`,
   ];
 
   if (entry.renormalized) {
