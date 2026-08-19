@@ -1,0 +1,113 @@
+name: Job Search
+
+# Cron interpretato in UTC: le 05:00 UTC sono le 06:00 italiane d'inverno e le
+# 07:00 d'estate. Lo slittamento è irrilevante per un batch notturno.
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Esegue senza committare e senza chiamare gli LLM'
+        type: boolean
+        default: false
+      max_evaluations:
+        description: 'Tetto di valutazioni complete per questo run'
+        type: string
+        default: ''
+      full_sweep:
+        description: 'Include la scansione ampia dell intero dataset ATS'
+        type: boolean
+        default: false
+
+# Due run non devono mai scrivere insieme su data/ e reports/.
+concurrency:
+  group: job-search
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run project tests
+        run: |
+          node career-score.test.mjs
+          node daily-digest.test.mjs
+          node obsidian-export.test.mjs
+
+      - name: Validate portals configuration
+        run: node validate-portals.mjs
+
+      - name: Discovery (tier 1, zero token)
+        run: node scan.mjs
+
+      - name: Full ATS sweep (opzionale)
+        if: ${{ inputs.full_sweep == true }}
+        run: node scan-ats-full.mjs
+
+      - name: Liveness check
+        run: node check-liveness.mjs || echo "Liveness check completato con avvisi"
+
+      - name: Evaluate offers
+        if: ${{ inputs.dry_run != true }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          MAX_EVALUATIONS: ${{ inputs.max_evaluations }}
+        run: node run-evaluations.mjs
+
+      - name: Generate daily digest
+        run: node daily-digest.mjs
+
+      - name: Export to Obsidian
+        run: node obsidian-export.mjs
+
+      - name: Job summary
+        run: |
+          DIGEST="reports/daily/$(date -u +%F).md"
+          if [ -f "$DIGEST" ]; then
+            cat "$DIGEST" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Nessun digest prodotto." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-intelligence-${{ github.run_number }}
+          path: |
+            reports/
+            obsidian/
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Commit results
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          git config user.name "career-intel-bot"
+          git config user.email "noreply@github.com"
+          # -f perché data/, reports/ e i file di profilo sono gitignorati
+          # nel system layer: la decisione D4 li vuole tracciati in questo fork.
+          git add -f data/ reports/ obsidian/ || true
+          if git diff --staged --quiet; then
+            echo "Nessuna modifica da committare."
+          else
+            git commit -m "chore: risultati job search $(date -u +%F) [skip ci]"
+            git push
+          fi
