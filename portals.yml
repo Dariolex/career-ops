@@ -99,7 +99,10 @@ location_filter:
     - "Netherlands"
     - "Amsterdam"
   allow:
-    - "Remote"
+    - "Remote Europe"
+    - "EMEA Remote"
+    - "Remote - EMEA"
+    - "Remote (EU)"
     - "Hybrid"
     - "Italy"
     - "Italia"
@@ -148,6 +151,9 @@ location_filter:
     - "China"
     - "Brazil"
     - "Australia"
+    - "Canada"
+    - "US-Remote"
+    - "USA-Remote"
 
 # Aziende con team privacy e AI governance strutturati nelle geografie target.
 # La lista non pretende di essere esaustiva: scan-ats-full.mjs copre il resto
