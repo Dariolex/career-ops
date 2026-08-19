@@ -1,0 +1,243 @@
+# portals.yml — Dario Career Intelligence
+# Letto da scan.mjs e scan-ats-full.mjs.
+
+scan_history:
+  recheck_after_days: 30
+
+title_filter:
+  positive:
+    # -- AI governance e regolamentazione --
+    - "AI Governance"
+    - "AI Policy"
+    - "AI Compliance"
+    - "AI Regulatory"
+    - "AI Risk"
+    - "Responsible AI"
+    - "AI Act"
+    - "AI Ethics"
+    - "Algorithmic Accountability"
+    - "AI + Counsel"
+    - "AI + Legal"
+    - "AI + Governance"
+    # -- Privacy e data protection --
+    - "Data Protection Officer"
+    - "Data Protection"
+    - "Privacy Counsel"
+    - "Privacy Officer"
+    - "Privacy Manager"
+    - "Privacy Lead"
+    - "Privacy Program"
+    - "Privacy Engineer"
+    - "Data Privacy"
+    - "GDPR"
+    - "DPO"
+    # -- Legal, technology e cyber --
+    - "Technology Counsel"
+    - "Technology Law"
+    - "Digital Regulation"
+    - "Regulatory Counsel"
+    - "Regulatory Affairs"
+    - "Legal Counsel"
+    - "Senior Counsel"
+    - "Compliance Manager"
+    - "Compliance Officer"
+    - "Cybersecurity + Counsel"
+    - "Cyber + Legal"
+    - "Data Governance"
+    - "Risk + Compliance"
+    # -- Italiano --
+    - "Responsabile Protezione Dati"
+    - "Responsabile Privacy"
+    - "Consulente Privacy"
+    - "Legale"
+    - "Affari Regolamentari"
+    - "Conformita"
+    # -- Tedesco --
+    - "Datenschutz"
+    - "Datenschutzbeauftragter"
+    - "Compliance Manager"
+    - "Justiziar"
+    - "Syndikusrechtsanwalt"
+  negative:
+    # Escludere i ruoli tecnici e commerciali che condividono keyword
+    - "Software Engineer"
+    - "Data Engineer"
+    - "Data Scientist"
+    - "Machine Learning Engineer"
+    - "Sales"
+    - "Account Executive"
+    - "Recruiter"
+    - "Intern"
+    - "Internship"
+    - "Working Student"
+    - "Werkstudent"
+    - "Praktikum"
+    - "Tirocinio"
+    - "Stage"
+    - "Apprentice"
+    - "Graduate Program"
+  seniority_boost:
+    - "Senior"
+    - "Lead"
+    - "Head of"
+    - "Principal"
+    - "Director"
+    - "Manager"
+
+location_filter:
+  # always_allow ha precedenza su block: salva gli annunci multi-sede che
+  # nominano una delle geografie target.
+  always_allow:
+    - "Italy"
+    - "Italia"
+    - "Milan"
+    - "Milano"
+    - "Rome"
+    - "Roma"
+    - "Ireland"
+    - "Dublin"
+    - "Netherlands"
+    - "Amsterdam"
+  allow:
+    - "Remote"
+    - "Hybrid"
+    - "Italy"
+    - "Italia"
+    - "Ireland"
+    - "Dublin"
+    - "Netherlands"
+    - "Amsterdam"
+    - "Rotterdam"
+    - "The Hague"
+    - "Germany"
+    - "Deutschland"
+    - "Berlin"
+    - "Munich"
+    - "München"
+    - "Frankfurt"
+    - "Hamburg"
+    - "Switzerland"
+    - "Zurich"
+    - "Zürich"
+    - "Geneva"
+    - "Basel"
+    - "Europe"
+    - "EMEA"
+    - "Belgium"
+    - "Brussels"
+    - "Luxembourg"
+    - "Spain"
+    - "Madrid"
+    - "Barcelona"
+    - "France"
+    - "Paris"
+    - "Austria"
+    - "Vienna"
+    - "United Kingdom"
+    - "London"
+  block:
+    - "India"
+    - "Bengaluru"
+    - "Hyderabad"
+    - "United States"
+    - "San Francisco"
+    - "New York"
+    - "Singapore"
+    - "Japan"
+    - "Tokyo"
+    - "China"
+    - "Brazil"
+    - "Australia"
+
+# Aziende con team privacy e AI governance strutturati nelle geografie target.
+# La lista non pretende di essere esaustiva: scan-ats-full.mjs copre il resto
+# spazzando l'intero dataset ATS pubblico con gli stessi filtri di titolo.
+tracked_companies:
+
+  # -- Dublino: headquarter EMEA con team privacy consolidati --
+  - name: Stripe
+    careers_url: https://stripe.com/jobs
+    api: https://boards-api.greenhouse.io/v1/boards/stripe/jobs
+    enabled: true
+    notes: "Dublino: hub EMEA, team legal e privacy."
+  - name: Workday
+    careers_url: https://workday.wd5.myworkdayjobs.com/Workday
+    enabled: true
+    notes: "Dublino: sede EMEA."
+  - name: HubSpot
+    careers_url: https://www.hubspot.com/careers
+    api: https://boards-api.greenhouse.io/v1/boards/hubspot/jobs
+    enabled: true
+    notes: "Dublino: headquarter EMEA."
+  - name: Intercom
+    careers_url: https://www.intercom.com/careers
+    api: https://boards-api.greenhouse.io/v1/boards/intercom/jobs
+    enabled: true
+
+  # -- Amsterdam --
+  - name: Booking.com
+    careers_url: https://careers.booking.com
+    enabled: true
+    notes: "Amsterdam: grande team privacy e regulatory."
+  - name: Adyen
+    careers_url: https://careers.adyen.com
+    api: https://boards-api.greenhouse.io/v1/boards/adyen/jobs
+    enabled: true
+    notes: "Amsterdam: fintech regolamentata."
+  - name: Elastic
+    careers_url: https://www.elastic.co/careers
+    api: https://boards-api.greenhouse.io/v1/boards/elastic/jobs
+    enabled: true
+  - name: Miro
+    careers_url: https://miro.com/careers
+    api: https://boards-api.greenhouse.io/v1/boards/miro/jobs
+    enabled: true
+
+  # -- Laboratori AI: ruoli di AI governance e policy --
+  - name: Anthropic
+    careers_url: https://job-boards.greenhouse.io/anthropic
+    api: https://boards-api.greenhouse.io/v1/boards/anthropic/jobs
+    enabled: true
+  - name: OpenAI
+    careers_url: https://openai.com/careers
+    api: https://boards-api.greenhouse.io/v1/boards/openai/jobs
+    enabled: true
+  - name: Mistral AI
+    careers_url: https://jobs.lever.co/mistral
+    enabled: true
+    notes: "Parigi: AI Act come tema diretto."
+  - name: Hugging Face
+    careers_url: https://apply.workable.com/huggingface
+    enabled: true
+
+  # -- Italia e Sud Europa --
+  - name: Bending Spoons
+    careers_url: https://jobs.bendingspoons.com
+    enabled: true
+    notes: "Milano."
+  - name: Satispay
+    careers_url: https://www.satispay.com/careers
+    enabled: true
+    notes: "Milano: fintech regolamentata."
+  - name: Scalapay
+    careers_url: https://jobs.lever.co/scalapay
+    enabled: true
+
+  # -- DACH --
+  - name: SAP
+    careers_url: https://jobs.sap.com
+    enabled: true
+  - name: Siemens
+    careers_url: https://jobs.siemens.com
+    enabled: true
+  - name: Zalando
+    careers_url: https://jobs.zalando.com
+    enabled: true
+  - name: Personio
+    careers_url: https://www.personio.com/about-personio/careers/
+    enabled: true
+  - name: N26
+    careers_url: https://n26.com/en/careers
+    api: https://boards-api.greenhouse.io/v1/boards/n26/jobs
+    enabled: true
+    notes: "Berlino: banca regolamentata."
