@@ -900,7 +900,11 @@ const BLOCK_RE = /---CAREER_SCORE---\s*([\s\S]*?)---END_CAREER_SCORE---/;
 /** Le liste puntate usano "- Nessuno" per dichiarare l'assenza; qui diventa []. */
 function parseList(body, label) {
   const section = body.match(
-    new RegExp(`^${label}:\\s*$([\\s\\S]*?)(?=^[A-Z_]+:|\\Z)`, 'mi'),
+    // \Z non esiste in JavaScript (a differenza di PCRE/Python): senza questa
+    // correzione matcha il carattere letterale "Z", che con il flag "i"
+    // tronca la cattura alla prima "z" incontrata nel testo (es. dentro
+    // "Sovrapposizione"). $(?![\s\S]) è l'idioma corretto per fine-stringa.
+    new RegExp(`^${label}:\\s*$([\\s\\S]*?)(?=^[A-Z_]+:|$(?![\\s\\S]))`, 'mi'),
   );
   if (!section) return [];
   return section[1]
