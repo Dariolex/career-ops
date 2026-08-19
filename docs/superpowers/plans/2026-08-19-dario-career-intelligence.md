@@ -881,6 +881,7 @@ Expected: FAIL — `Cannot find module './career-score.mjs'`.
  */
 
 import { readFileSync } from 'fs';
+import { pathToFileURL } from 'url';
 
 export const WEIGHTS = {
   professional_fit:   25,
@@ -1026,7 +1027,9 @@ export function evaluateCareerScore(text, { thresholds = DEFAULT_THRESHOLDS } = 
 }
 
 // --- CLI ---
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL evita il confronto letterale file://+argv[1], che su Windows
+// fallisce sempre (backslash non convertiti, spazi non percent-encoded).
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const file = process.argv[2];
   if (!file) {
     console.error('Uso: node career-score.mjs <file-valutazione.md>');
@@ -1468,7 +1471,7 @@ Expected: FAIL — `Cannot find module './daily-digest.mjs'`.
 
 import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { evaluateCareerScore } from './career-score.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -1580,7 +1583,9 @@ function collectEntries(date) {
   return entries;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL evita il confronto letterale file://+argv[1], che su Windows
+// fallisce sempre (backslash non convertiti, spazi non percent-encoded).
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const date = process.argv[2] || new Date().toISOString().slice(0, 10);
   const outDir = join(ROOT, 'reports', 'daily');
   mkdirSync(outDir, { recursive: true });
@@ -1705,7 +1710,7 @@ Expected: FAIL — `Cannot find module './obsidian-export.mjs'`.
 
 import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { evaluateCareerScore } from './career-score.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -1790,7 +1795,9 @@ function slugify(value) {
     .replace(/^-+|-+$/g, '') || 'job';
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL evita il confronto letterale file://+argv[1], che su Windows
+// fallisce sempre (backslash non convertiti, spazi non percent-encoded).
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const reportsDir = join(ROOT, 'reports');
   const outDir = join(ROOT, 'obsidian', 'jobs');
   mkdirSync(outDir, { recursive: true });
