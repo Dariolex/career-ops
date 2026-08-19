@@ -10,6 +10,7 @@
  */
 
 import { readFileSync } from 'fs';
+import { pathToFileURL } from 'url';
 
 export const WEIGHTS = {
   professional_fit:   25,
@@ -155,7 +156,7 @@ export function evaluateCareerScore(text, { thresholds = DEFAULT_THRESHOLDS } = 
 }
 
 // --- CLI ---
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const file = process.argv[2];
   if (!file) {
     console.error('Uso: node career-score.mjs <file-valutazione.md>');
