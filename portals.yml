@@ -54,11 +54,11 @@ title_filter:
     - "Legale"
     - "Affari Regolamentari"
     - "Conformita"
-    # -- Tedesco --
-    - "Datenschutz"
-    - "Datenschutzbeauftragter"
-    - "Justiziar"
-    - "Syndikusrechtsanwalt"
+    # I titoli in lingua tedesca (Datenschutzbeauftragter, Justiziar,
+    # Syndikusrechtsanwalt) sono stati rimossi: un annuncio scritto in tedesco
+    # richiede quasi sempre tedesco negoziale, che e' un deal-breaker
+    # (modes/_profile.md). Le posizioni DACH pubblicate in inglese restano
+    # coperte dalle keyword inglesi qui sopra.
   negative:
     # Escludere i ruoli tecnici e commerciali che condividono keyword
     - "Software Engineer"
@@ -155,6 +155,41 @@ location_filter:
     - "Canada"
     - "US-Remote"
     - "USA-Remote"
+
+# Filtro sul CORPO dell'annuncio (job.description), non sul titolo. Applica a
+# costo zero il deal-breaker sul tedesco fluente definito in modes/_profile.md,
+# prima che l'offerta consumi token di triage o di valutazione completa.
+#
+# PORTATA REALE (scan.mjs:520-523): solo il provider Lever espone la descrizione
+# nel payload di lista. Greenhouse, Ashby, Workday e iCIMS lasciano il campo
+# vuoto e passano sempre questo filtro. Oggi incide quindi su poche aziende
+# tracciate; il valore cresce con lo sweep ATS completo, che copre Lever in
+# ampiezza. Per tutto il resto il deal-breaker resta applicato a valle, dal
+# triage (modes/_brief.md) e dalla valutazione completa (modes/_profile.md).
+#
+# CRITERIO: solo formulazioni inequivocabilmente vincolanti. Il tedesco come
+# "plus" o "nice-to-have" NON deve essere bloccato, e un match di sottostringa
+# non sa distinguere "fluent German required" da "fluent German is a plus":
+# i casi ambigui vengono lasciati passare di proposito, perche' a valle il
+# modello legge la JD intera e sa fare quella distinzione.
+content_filter:
+  negative:
+    # -- Tedesco: formulazioni tedesche di requisito --
+    - "verhandlungssicheres Deutsch"
+    - "verhandlungssichere Deutschkenntnisse"
+    - "Deutschkenntnisse zwingend"
+    - "Deutsch zwingend erforderlich"
+    - "muttersprachliche Deutschkenntnisse"
+    - "Deutsch auf muttersprachlichem Niveau"
+    # -- Tedesco: formulazioni inglesi di requisito --
+    - "fluent German is required"
+    - "fluent German required"
+    - "fluency in German is required"
+    - "German fluency is required"
+    - "German fluency required"
+    - "must be fluent in German"
+    - "must speak fluent German"
+    - "native German speaker required"
 
 # Aziende con team privacy e AI governance strutturati nelle geografie target.
 # La lista non pretende di essere esaustiva: scan-ats-full.mjs copre il resto
