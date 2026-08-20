@@ -10,6 +10,8 @@ daily-digest.mjs
 daily-digest.test.mjs
 obsidian-export.mjs
 obsidian-export.test.mjs
+jd-extract.mjs
+jd-extract.test.mjs
 modes/_career-score.md
 CAREER-INTEL.md
 obsidian/

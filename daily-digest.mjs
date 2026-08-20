@@ -13,6 +13,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { evaluateCareerScore } from './career-score.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
+const NEEDS_REVIEW_PATH = join(ROOT, 'data', 'needs-manual-review.tsv');
 
 const ORDER = { APPLY: 0, CONSIDER: 1, LOW_PRIORITY: 2, REJECT: 3 };
 
@@ -50,16 +51,49 @@ function renderEntry(entry) {
   return lines.join('\n');
 }
 
+function renderNeedsReviewSection(needsReview) {
+  if (!needsReview || needsReview.length === 0) return [];
+  const reasonLabel = {
+    http_gone: 'annuncio scaduto',
+    bot_challenge: 'bloccato da anti-bot',
+    access_blocked: 'accesso bloccato',
+    server_error: 'errore del server',
+    expired_url: 'redirect verso URL scaduta',
+    expired_body: 'pagina segnala scadenza',
+    redirected_off_posting: 'redirect fuori dall\'annuncio',
+    listing_page: 'redirect a pagina di elenco',
+    insufficient_content: 'contenuto insufficiente',
+    navigation_error: 'errore di navigazione',
+    blocked_host: 'host bloccato dalla guardia di sicurezza',
+    invalid_url: 'URL non valida',
+    unsupported_protocol: 'protocollo non supportato',
+  };
+  const lines = [
+    '## Da verificare manualmente',
+    '',
+    `${needsReview.length} annunci non sono stati estratti automaticamente e vanno controllati a mano:`,
+    '',
+  ];
+  for (const item of needsReview) {
+    const label = reasonLabel[item.code] || item.code || 'motivo sconosciuto';
+    lines.push(`- [${item.url}](${item.url}) — ${label}${item.reason ? ` (${item.reason})` : ''}`);
+  }
+  lines.push('', '---', '');
+  return lines;
+}
+
 /**
- * @param {{date: string, entries: Array<Object>}} input
+ * @param {{date: string, entries: Array<Object>, needsReview?: Array<Object>}} input
  * @returns {string} Markdown del digest.
  */
-export function renderDigest({ date, entries }) {
+export function renderDigest({ date, entries, needsReview }) {
   const header = [`# Career Intelligence — ${date}`, ''];
+  const needsReviewSection = renderNeedsReviewSection(needsReview);
 
   if (!entries || entries.length === 0) {
     return [
       ...header,
+      ...needsReviewSection,
       'Nessuna offerta rilevante trovata oggi.',
       '',
       'Per un profilo AI Governance e privacy senior è un esito normale: le posizioni',
@@ -87,6 +121,7 @@ export function renderDigest({ date, entries }) {
     '---',
     '',
     ...sorted.map(renderEntry),
+    ...needsReviewSection,
   ].join('\n');
 }
 
@@ -131,11 +166,36 @@ export function collectEntries(date, reportsDirOverride) {
   return entries;
 }
 
+/**
+ * Legge data/needs-manual-review.tsv e restituisce le righe del giorno dato.
+ * Formato riga: url\tdata ISO\tcode\treason (append-only, scritto da
+ * run-evaluations.mjs quando jd-extract.mjs non riesce a estrarre un annuncio).
+ * @param {string} date - YYYY-MM-DD
+ * @param {string} [pathOverride] - percorso del file da leggere (per i test)
+ */
+export function collectNeedsReview(date, pathOverride) {
+  const path = pathOverride || NEEDS_REVIEW_PATH;
+  if (!existsSync(path)) return [];
+  const text = readFileSync(path, 'utf-8');
+  const items = [];
+  for (const line of text.split('\n')) {
+    if (!line.trim()) continue;
+    const [url, rowDate, code, reason] = line.split('\t');
+    if (rowDate?.trim() !== date) continue;
+    items.push({ url: url?.trim(), date: rowDate?.trim(), code: code?.trim(), reason: reason?.trim() });
+  }
+  return items;
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const date = process.argv[2] || new Date().toISOString().slice(0, 10);
   const outDir = join(ROOT, 'reports', 'daily');
   mkdirSync(outDir, { recursive: true });
   const outPath = join(outDir, `${date}.md`);
-  writeFileSync(outPath, renderDigest({ date, entries: collectEntries(date) }), 'utf-8');
+  writeFileSync(outPath, renderDigest({
+    date,
+    entries: collectEntries(date),
+    needsReview: collectNeedsReview(date),
+  }), 'utf-8');
   console.log(`📄  Digest scritto: ${outPath}`);
 }

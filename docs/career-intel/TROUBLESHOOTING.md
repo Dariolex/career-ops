@@ -30,19 +30,22 @@ tra i file caricati dal tier `full` in `anthropic-eval.mjs`.
 Verificare che il workflow abbia `permissions: contents: write`. Se il messaggio
 riguarda file ignorati, controllare che il comando usi `git add -f`.
 
-## `⚠ SKIP <url>` in run-evaluations.mjs — "no job-description text available"
+## `🔎 REVIEW <url>` in run-evaluations.mjs — "estrazione automatica non riuscita"
 
-Comportamento atteso, non un errore. Non esiste ancora una pipeline che scarica e
-converte una posting URL in testo JD reale: senza guard, lo script manderebbe la nuda
-URL all'LLM come se fosse la job description, producendo una valutazione allucinata
-ma formattata con sicurezza, a spese di budget reale. `run-evaluations.mjs` si rifiuta
-di farlo di default e salta l'URL con questo warning.
+Comportamento atteso, non un errore bloccante. `jd-extract.mjs` (Playwright headless)
+non è riuscito a leggere l'annuncio — motivi tipici: annuncio scaduto (`http_gone`),
+blocco anti-bot (`bot_challenge`), o contenuto insufficiente (`insufficient_content`).
+L'URL viene registrata in `data/needs-manual-review.tsv` e comparirà nella sezione
+"Da verificare manualmente" del prossimo digest giornaliero — controllarla a mano.
 
 **Non impostare `CAREER_INTEL_ALLOW_URL_AS_TEXT=1` per "risolvere" questo messaggio.**
-È un override esplicito per chi vuole testare deliberatamente il vecchio
-comportamento (invio della URL nuda), non un fix. **Nessuna esecuzione live/non-dry-run
-va tentata finché una vera pipeline di estrazione JD non sostituisce questo guard** —
-è un prerequisito, non un nice-to-have. Vedi `docs/career-intel/GITHUB_ACTIONS.md`.
+È un override esplicito per chi vuole deliberatamente forzare l'invio della URL nuda
+come testo quando l'estrazione fallisce, non un fix — produce valutazioni allucinate.
+Vedi `docs/career-intel/GITHUB_ACTIONS.md`.
+
+Un URL già presente in `data/needs-manual-review.tsv` non viene ritentato in
+automatico nei run successivi. Per farlo ritentare, rimuovere la riga corrispondente
+dal file.
 
 ## Un'offerta non viene mai valutata, nemmeno con il guard disattivato
 

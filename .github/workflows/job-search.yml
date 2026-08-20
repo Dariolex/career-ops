@@ -50,6 +50,7 @@ jobs:
           node career-score.test.mjs
           node daily-digest.test.mjs
           node obsidian-export.test.mjs
+          node jd-extract.test.mjs
 
       - name: Validate portals configuration
         run: node validate-portals.mjs
@@ -117,6 +118,7 @@ jobs:
             data/scan-runs.tsv \
             data/portal-health.tsv \
             data/evaluated-urls.tsv \
+            data/needs-manual-review.tsv \
             reports/ \
             obsidian/ \
           ; do

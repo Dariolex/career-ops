@@ -6,29 +6,37 @@
  * invoca anthropic-eval.mjs su ciascuna. Il tetto è la valvola che impedisce a
  * una giornata anomala di consumare budget imprevisto.
  *
- * Due guardie aggiunte dal fix round di final review:
- *  - Fix 1: senza una vera pipeline di fetch/estrazione JD, l'unico testo
- *    disponibile per ogni URL è l'URL stesso. Inviarlo così com'è all'LLM come
- *    se fosse la job description produce valutazioni allucinate e formattate
- *    con sicurezza — spende budget reale per output inventato. Il default è
- *    rifiutarsi e saltare; CAREER_INTEL_ALLOW_URL_AS_TEXT=1 forza il vecchio
- *    comportamento per chi vuole testarlo deliberatamente.
- *  - Fix 2: senza memoria di cosa è già stato valutato, ogni run ri-valuta e
- *    ri-fattura le stesse URL all'infinito e la coda non si svuota mai.
- *    data/evaluated-urls.tsv (url\tdata ISO, uno per riga) è il log
- *    processed-URL: append-only, controllato prima di ogni dispatch.
+ * Tre guardie:
+ *  - Fix 2 (final review): senza memoria di cosa è già stato valutato, ogni
+ *    run ri-valuta e ri-fattura le stesse URL all'infinito e la coda non si
+ *    svuota mai. data/evaluated-urls.tsv (url\tdata ISO, uno per riga) è il
+ *    log processed-URL: append-only, controllato prima di ogni dispatch.
+ *  - Estrazione JD reale (jd-extract.mjs, Playwright headless): ogni URL
+ *    viene navigata e il testo dell'annuncio estratto davvero, invece di
+ *    spedire la URL nuda all'LLM come se fosse la job description.
+ *  - Annunci non estraibili (scaduti, bloccati da anti-bot, contenuto
+ *    insufficiente) non vengono scartati in silenzio: finiscono in
+ *    data/needs-manual-review.tsv e il digest giornaliero li segnala,
+ *    così l'utente sa quali annunci verificare a mano. CAREER_INTEL_ALLOW_URL_AS_TEXT=1
+ *    resta una via di fuga manuale per chi vuole comunque forzare l'invio
+ *    della URL nuda come testo (NON raccomandato).
  */
 
 import {
-  readFileSync, existsSync, appendFileSync, mkdirSync,
+  readFileSync, existsSync, appendFileSync, mkdirSync, writeFileSync, unlinkSync,
 } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
+import { tmpdir } from 'os';
+import { randomUUID } from 'crypto';
 import yaml from 'js-yaml';
+import { chromium } from 'playwright';
+import { extractJobDescription } from './jd-extract.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const EVALUATED_URLS_PATH = join(ROOT, 'data', 'evaluated-urls.tsv');
+const NEEDS_REVIEW_PATH = join(ROOT, 'data', 'needs-manual-review.tsv');
 
 function loadMaxEvaluations() {
   const fromEnv = Number(process.env.MAX_EVALUATIONS);
@@ -52,9 +60,9 @@ function loadPendingUrls() {
 }
 
 /** URL già valutate in run precedenti: {url}\t{data ISO} per riga. */
-function loadEvaluatedUrls() {
-  if (!existsSync(EVALUATED_URLS_PATH)) return new Set();
-  const text = readFileSync(EVALUATED_URLS_PATH, 'utf-8');
+function loadUrlSetFromTsv(path) {
+  if (!existsSync(path)) return new Set();
+  const text = readFileSync(path, 'utf-8');
   const set = new Set();
   for (const line of text.split('\n')) {
     const url = line.split('\t')[0]?.trim();
@@ -69,18 +77,23 @@ function appendEvaluatedUrl(url) {
   appendFileSync(EVALUATED_URLS_PATH, `${url}\t${today}\n`, 'utf-8');
 }
 
-/** Vero solo se il "testo" è letteralmente l'URL e nient'altro — cioè non
- * abbiamo mai estratto una vera job description per questa offerta. */
-function isBareUrl(text) {
-  return /^https?:\/\/\S+$/.test(String(text).trim());
+/** Annuncio non estraibile: registrato per verifica manuale (mai riprovato
+ * in automatico — coerente con evaluated-urls.tsv, un solo file per URL). */
+function appendNeedsReview(url, code, reason) {
+  mkdirSync(dirname(NEEDS_REVIEW_PATH), { recursive: true });
+  const today = new Date().toISOString().slice(0, 10);
+  const safeReason = String(reason ?? '').replace(/[\t\n]/g, ' ');
+  appendFileSync(NEEDS_REVIEW_PATH, `${url}\t${today}\t${code}\t${safeReason}\n`, 'utf-8');
 }
 
 const max = loadMaxEvaluations();
 const allUrls = loadPendingUrls();
-const evaluatedUrls = loadEvaluatedUrls();
+const evaluatedUrls = loadUrlSetFromTsv(EVALUATED_URLS_PATH);
+const needsReviewUrls = loadUrlSetFromTsv(NEEDS_REVIEW_PATH);
 
-const candidateUrls = allUrls.filter(url => !evaluatedUrls.has(url));
-const alreadyEvaluatedSkipped = allUrls.length - candidateUrls.length;
+const alreadyEvaluatedSkipped = allUrls.filter(url => evaluatedUrls.has(url)).length;
+const alreadyNeedsReviewSkipped = allUrls.filter(url => !evaluatedUrls.has(url) && needsReviewUrls.has(url)).length;
+const candidateUrls = allUrls.filter(url => !evaluatedUrls.has(url) && !needsReviewUrls.has(url));
 const urls = candidateUrls.slice(0, max);
 
 if (allUrls.length === 0) {
@@ -91,9 +104,12 @@ if (allUrls.length === 0) {
 if (alreadyEvaluatedSkipped > 0) {
   console.log(`⏭  ${alreadyEvaluatedSkipped} URL già valutate in precedenza (data/evaluated-urls.tsv), saltate.`);
 }
+if (alreadyNeedsReviewSkipped > 0) {
+  console.log(`🔎 ${alreadyNeedsReviewSkipped} URL già segnalate per verifica manuale (data/needs-manual-review.tsv), saltate — vedi il digest giornaliero.`);
+}
 
 if (urls.length === 0) {
-  console.log('Nessuna offerta nuova da valutare (tutte già presenti in data/evaluated-urls.tsv o tetto esaurito).');
+  console.log('Nessuna offerta nuova da valutare (tutte già presenti in data/evaluated-urls.tsv, data/needs-manual-review.tsv, o tetto esaurito).');
   process.exit(0);
 }
 
@@ -102,41 +118,57 @@ console.log(`Valutazione di ${urls.length} offerte (tetto: ${max}).`);
 const allowUrlAsText = process.env.CAREER_INTEL_ALLOW_URL_AS_TEXT === '1';
 
 let evaluated = 0;
-let guardSkipped = 0;
+let needsReview = 0;
 let failed = 0;
 
-for (const url of urls) {
-  // Fix 1: non esiste ancora una pipeline di fetch/estrazione JD — l'unico
-  // "testo" disponibile per ogni URL è l'URL stesso. Inviarlo come se fosse
-  // la job description produce valutazioni allucinate ma formattate con
-  // sicurezza, sprecando budget reale. Rifiuta di default; solo un override
-  // esplicito (per chi vuole testarlo deliberatamente) lo lascia passare.
-  const text = url;
-  if (isBareUrl(text)) {
-    if (!allowUrlAsText) {
-      console.warn(`⚠ SKIP ${url} — no job-description text available, only a bare URL (no fetch/extraction pipeline wired yet). Set CAREER_INTEL_ALLOW_URL_AS_TEXT=1 to override and send the raw URL to the LLM anyway (NOT recommended, wastes API spend on hallucinated output).`);
-      guardSkipped++;
-      continue;
-    }
-    console.warn(`⚠ CAREER_INTEL_ALLOW_URL_AS_TEXT=1 set — sending the raw URL as job-description text to the LLM anyway: ${url} (NOT recommended, wastes API spend on hallucinated output).`);
-  }
-
-  try {
-    execFileSync(process.execPath, [
-      join(ROOT, 'anthropic-eval.mjs'), '--text', text, '--url', url,
-    ], {
-      stdio: 'inherit',
-      env: process.env,
-    });
-    evaluated++;
-    appendEvaluatedUrl(url);
-  } catch {
-    console.warn(`⚠️   Valutazione fallita: ${url}`);
-    failed++;
-  }
+// Un solo browser per l'intero run, riusato in sequenza — mai Playwright in
+// parallelo (stessa regola di check-liveness.mjs).
+let browser = null;
+async function ensureBrowser() {
+  if (!browser) browser = await chromium.launch({ headless: true });
+  return browser;
 }
 
-console.log(`\nValutate ${evaluated}, saltate per guard URL ${guardSkipped}, fallite ${failed}, già valutate in precedenza ${alreadyEvaluatedSkipped}.`);
+try {
+  for (const url of urls) {
+    const extraction = await extractJobDescription(url, { browser: await ensureBrowser() });
+
+    let jdText;
+    if (extraction.success) {
+      jdText = extraction.text;
+    } else if (allowUrlAsText) {
+      console.warn(`⚠ CAREER_INTEL_ALLOW_URL_AS_TEXT=1 set — estrazione fallita (${extraction.code}: ${extraction.reason}), invio comunque la URL nuda come testo: ${url} (NON raccomandato, spreca budget su output allucinato).`);
+      jdText = url;
+    } else {
+      console.warn(`🔎 REVIEW ${url} — estrazione automatica non riuscita (${extraction.code}: ${extraction.reason}). Segnalato in data/needs-manual-review.tsv, verrà mostrato nel digest giornaliero. Imposta CAREER_INTEL_ALLOW_URL_AS_TEXT=1 per forzare l'invio della URL nuda (NON raccomandato).`);
+      appendNeedsReview(url, extraction.code, extraction.reason);
+      needsReview++;
+      continue;
+    }
+
+    const jdFilePath = join(tmpdir(), `career-intel-jd-${randomUUID()}.txt`);
+    writeFileSync(jdFilePath, jdText, 'utf-8');
+    try {
+      execFileSync(process.execPath, [
+        join(ROOT, 'anthropic-eval.mjs'), jdFilePath, '--url', url,
+      ], {
+        stdio: 'inherit',
+        env: process.env,
+      });
+      evaluated++;
+      appendEvaluatedUrl(url);
+    } catch {
+      console.warn(`⚠️   Valutazione fallita: ${url}`);
+      failed++;
+    } finally {
+      try { unlinkSync(jdFilePath); } catch { /* best-effort cleanup */ }
+    }
+  }
+} finally {
+  if (browser) await browser.close().catch(() => {});
+}
+
+console.log(`\nValutate ${evaluated}, da verificare manualmente ${needsReview}, fallite ${failed}, già valutate/segnalate in precedenza ${alreadyEvaluatedSkipped + alreadyNeedsReviewSkipped}.`);
 // Le valutazioni fallite non devono far fallire l'intero workflow: il digest
 // deve comunque essere prodotto con ciò che è riuscito.
 process.exit(0);

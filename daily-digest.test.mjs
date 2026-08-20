@@ -1,4 +1,4 @@
-import { renderDigest, collectEntries } from './daily-digest.mjs';
+import { renderDigest, collectEntries, collectNeedsReview } from './daily-digest.mjs';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -139,6 +139,35 @@ try {
   ok('collectEntries calcola il Career Score dal report reale', entry?.total > 0);
 } finally {
   rmSync(fixtureDir, { recursive: true, force: true });
+}
+
+// --- needs-manual-review: collectNeedsReview + sezione nel digest ---
+
+const needsReviewDir = mkdtempSync(join(tmpdir(), 'career-ops-needs-review-'));
+try {
+  const tsvPath = join(needsReviewDir, 'needs-manual-review.tsv');
+  writeFileSync(tsvPath, [
+    'https://example.com/job-a\t2026-08-19\tbot_challenge\tanti-bot challenge: just a moment',
+    'https://example.com/job-b\t2026-08-18\thttp_gone\tHTTP 410',
+    'https://example.com/job-c\t2026-08-19\tinsufficient_content\testratto troppo corto',
+  ].join('\n') + '\n', 'utf-8');
+
+  const todays = collectNeedsReview('2026-08-19', tsvPath);
+  ok('collectNeedsReview filtra per data', todays.length === 2);
+  ok('collectNeedsReview esclude righe di altre date', !todays.some(i => i.url === 'https://example.com/job-b'));
+  ok('collectNeedsReview estrae il codice', todays.some(i => i.code === 'bot_challenge'));
+
+  const emptyResult = collectNeedsReview('2026-08-19', join(needsReviewDir, 'assente.tsv'));
+  ok('collectNeedsReview su file assente restituisce array vuoto', emptyResult.length === 0);
+
+  const digestWithReview = renderDigest({ date: '2026-08-19', entries: [], needsReview: todays });
+  ok('il digest include la sezione "Da verificare manualmente"', digestWithReview.includes('Da verificare manualmente'));
+  ok('il digest elenca la URL da verificare', digestWithReview.includes('https://example.com/job-a'));
+
+  const digestWithoutReview = renderDigest({ date: '2026-08-19', entries: [], needsReview: [] });
+  ok('senza voci da verificare la sezione non appare', !digestWithoutReview.includes('Da verificare manualmente'));
+} finally {
+  rmSync(needsReviewDir, { recursive: true, force: true });
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);
