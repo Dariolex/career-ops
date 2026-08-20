@@ -305,6 +305,11 @@ async function main() {
 
   const parts = tier.modes.map(m => readOptional(m, m));
   parts.push(readOptional(tier.profile, tier.profile));
+  // modes/_custom.md è opzionale (molti utenti non l'hanno mai creato dal
+  // template): a differenza degli altri file, un'assenza qui non è un
+  // problema di configurazione e non deve stampare un warning ad ogni run.
+  const customPath = join(ROOT, 'modes', '_custom.md');
+  if (existsSync(customPath)) parts.push(readFileSync(customPath, 'utf-8').trim());
   if (tier.includeCv) parts.push(`# CV\n\n${readOptional('cv.md', 'cv.md')}`);
   // Solo il tier "full" (Blocchi A-G) porta le regole operative + il
   // contratto SCORE_SUMMARY: il triage ha una shape diversa e più leggera.
