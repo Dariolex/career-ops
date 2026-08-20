@@ -20,7 +20,12 @@ ruolo più strategico, maggiore esposizione internazionale. Un ruolo laterale o
 inferiore riceve un punteggio basso anche se il fit è ottimo.
 
 **COMPENSATION** — Valuta salario, bonus, equity, benefit e costo opportunità.
-**Se l'annuncio non dichiara il salario, scrivi esattamente `unknown`.** Non stimare,
+**Il valore emesso è sempre un punteggio intero 0-100, mai la cifra dello
+stipendio stessa** — anche quando l'annuncio dichiara un importo preciso,
+scrivi il punteggio che rappresenta quanto quell'importo è buono (rispetto al
+target del candidato), non l'importo. Riporta la cifra solo nella motivazione
+dopo la barra verticale. **Se l'annuncio non dichiara il salario, scrivi
+esattamente `unknown`.** Non stimare,
 non dedurre dal settore, non usare medie di mercato. Un valore inventato è un errore
 più grave di un dato mancante.
 
