@@ -34,10 +34,14 @@ privacy e AI governance strutturati, e si lavora in inglese.
 
 ## Cosa cerco
 
-DA COMPLETARE: seniority, settore, modello di lavoro, elementi non negoziabili.
+Crescita di carriera: ruoli di livello Senior, Manager o Head (mai posizioni junior o
+mid-level). Modello di lavoro: in sede o ibrido — scartare ruoli full-remote come primo
+requisito del posting. Target retributivo: 110.000 EUR/anno o superiore.
 
 ## Note per lo scoring
 
-DA COMPLETARE: preferenze su tipo di datore di lavoro (azienda tech, studio legale,
-consulenza, istituzione), disponibilità a relocation, sensibilità ai settori
-regolamentati.
+Motivazione della ricerca: salto di carriera verso maggiore responsabilità e impatto,
+non fuga da un problema. Preferire ruoli che offrono un chiaro avanzamento di seniority
+o scope (es. da Head singolo centro a Head multi-sito/gruppo, da Counsel a Head of
+Legal/Privacy) rispetto a spostamenti laterali. Penalizzare gli annunci full-remote
+senza presenza in sede/ibrida.
