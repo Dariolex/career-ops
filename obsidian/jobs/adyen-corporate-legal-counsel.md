@@ -2,8 +2,8 @@
 job_id: adyen-corporate-legal-counsel
 company: Adyen
 title: Corporate Legal Counsel
-location: Amsterdam, Netherlands (office-first, no remote)
-score: 31
+location: Amsterdam, Paesi Bassi (office-first)
+score: 26
 classification: REJECT
 source: job-boards.greenhouse.io
 url: "https://job-boards.greenhouse.io/adyen/jobs/8079603"
@@ -14,23 +14,23 @@ discovered: 2026-08-20
 
 ## Score
 
-**31/100 — REJECT**
+**26/100 — REJECT**
 
 ## Why it fits
 
-L'annuncio proviene da un datore di lavoro eccellente in una sede prioritaria, ma il contenuto del ruolo — diritto societario, MAR, disclosure, equity plan, M&A — non ha alcuna sovrapposizione sostanziale con il profilo privacy/AI governance del candidato. Non si tratta di un gap colmabile con riformulazione del CV, ma di un'area professionale diversa; l'evidenza suggerisce di non candidarsi nonostante la qualità dell'azienda.
+L'annuncio proviene da un'azienda solida e l'ambiente di lavoro (office-first, Amsterdam) è coerente con le preferenze dichiarate, ma il contenuto tecnico del ruolo — diritto dei mercati finanziari, Market Abuse Regulation, disclosure di società quotata — è un dominio giuridico completamente distinto dalla specializzazione di 18 anni di Dario in data protection e AI governance. Il titolo di "Counsel" individual-contributor rappresenterebbe inoltre un arretramento rispetto all'attuale ruolo di Head of Privacy Service. Non ci sono margini onesti di riposizionamento del CV che colmino requisiti definiti "imperativi" dall'annuncio stesso.
 
 ## Missing requirements
 
-- Conoscenza della Market Abuse Regulation e normativa correlata
-- Esperienza in disclosure societaria e public filings
+- Conoscenza approfondita della Market Abuse Regulation e normativa collegata
+- Esperienza diretta con AFM, organi sociali e disclosure di società quotata
 - Familiarità con strutture di equity compensation
-- Esperienza diretta di interlocuzione con AFM o organi di vigilanza sui mercati finanziari
-- Esperienza in operazioni di M&A
 
 ## Gaps
 
-- Nessuna esperienza documentata nell'area del diritto societario/mercati finanziari, a differenza della privacy/AI law che è il core del profilo
+- Nessuna esperienza in Market Abuse Regulation, requisito definito "imperativo" dall'annuncio
+- Nessuna esperienza in disclosure, public filings, equity compensation o M&A
+- Il ruolo è di livello Counsel individual-contributor, inferiore all'attuale posizione di Head
 
 ## Salary
 
