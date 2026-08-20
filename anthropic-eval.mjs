@@ -18,6 +18,7 @@
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import yaml from 'js-yaml';
 import { evaluateCareerScore } from './career-score.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -60,6 +61,34 @@ const TIERS = {
     careerScore: true,
   },
 };
+
+/** language.output da config/profile.yml — 'en' se assente (stesso default
+ * documentato in AGENTS.md § Output Language vs Market Modes). Lo script
+ * headless non passa mai dai mode interattivi che iniettano questa direttiva,
+ * quindi va fatto qui esplicitamente o l'output resta nell'inglese dei
+ * template di sistema (modes/oferta.md, modes/_shared.md). */
+function outputLanguage() {
+  const path = join(ROOT, 'config', 'profile.yml');
+  if (!existsSync(path)) return 'en';
+  try {
+    const profile = yaml.load(readFileSync(path, 'utf-8')) || {};
+    return profile?.language?.output || 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+function languageDirective(lang) {
+  return `═══════════════════════════════════════════════════════
+OUTPUT LANGUAGE
+═══════════════════════════════════════════════════════
+Write ALL human-facing output in "${lang}" — every heading, sentence,
+bullet, and the REASONING/motivazioni fields — regardless of the language
+of these instructions or of the job description being evaluated. Field
+NAMES in the ---SCORE_SUMMARY--- and ---CAREER_SCORE--- machine blocks
+(COMPANY, ROLE, SCORE, PROFESSIONAL_FIT, ecc.) stay in English exactly as
+specified below: only their VALUES and reasoning text follow "${lang}".`;
+}
 
 function readOptional(relative, label) {
   const path = join(ROOT, relative);
@@ -280,6 +309,9 @@ async function main() {
   // Solo il tier "full" (Blocchi A-G) porta le regole operative + il
   // contratto SCORE_SUMMARY: il triage ha una shape diversa e più leggera.
   if (tier.careerScore) parts.push(OPERATING_CONSTRAINTS);
+  // Ultima in ordine: i modelli pesano di più le istruzioni recenti, e
+  // questa deve vincere su qualunque lingua usata nei mode/CV/JD sopra.
+  parts.push(languageDirective(outputLanguage()));
   const system = parts.join('\n\n---\n\n');
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -354,7 +386,10 @@ async function main() {
   const company = summaryField(output, 'COMPANY') || 'unknown';
   const role = summaryField(output, 'ROLE') || 'unknown';
   const date = new Date().toISOString().slice(0, 10);
-  const reportsDir = join(ROOT, 'reports');
+  // Un report per cartella-data (reports/{date}/): mkdirSync gira solo qui,
+  // subito prima di scrivere il file — nessuna cartella creata se il run
+  // non produce nessun report.
+  const reportsDir = join(ROOT, 'reports', date);
   mkdirSync(reportsDir, { recursive: true });
   // Include lo slug del ruolo (#Fix4): senza, due ruoli diversi nella stessa
   // azienda nello stesso giorno si sovrascrivono a vicenda in silenzio.

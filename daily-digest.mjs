@@ -141,7 +141,7 @@ function summaryField(text, key) {
  * @param {string} [reportsDirOverride] - directory reports/ da leggere (per i test)
  */
 export function collectEntries(date, reportsDirOverride) {
-  const reportsDir = reportsDirOverride || join(ROOT, 'reports');
+  const reportsDir = reportsDirOverride || join(ROOT, 'reports', date);
   if (!existsSync(reportsDir)) return [];
 
   const entries = [];

@@ -109,13 +109,25 @@ function slugify(value) {
  * @param {string} reportsDir
  * @returns {Array<{job_id: string, note: string}>}
  */
+/** Elenca ricorsivamente ogni file .md sotto reportsDir — i report vivono
+ * ora in sottocartelle reports/{YYYY-MM-DD}/, ma questo export resta uno
+ * storico completo, non filtrato per data. */
+function listMarkdownFilesRecursive(dir) {
+  const files = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...listMarkdownFilesRecursive(full));
+    else if (entry.isFile() && entry.name.endsWith('.md')) files.push(full);
+  }
+  return files;
+}
+
 export function collectJobNotes(reportsDir) {
   const jobs = [];
   if (!existsSync(reportsDir)) return jobs;
 
-  for (const file of readdirSync(reportsDir)) {
-    if (!file.endsWith('.md')) continue;
-    const text = readFileSync(join(reportsDir, file), 'utf-8');
+  for (const fullPath of listMarkdownFilesRecursive(reportsDir)) {
+    const text = readFileSync(fullPath, 'utf-8');
     let scored;
     try {
       scored = evaluateCareerScore(text);
@@ -136,7 +148,7 @@ export function collectJobNotes(reportsDir) {
       classification: scored.classification,
       source: summaryField(text, 'SOURCE') || 'career-ops',
       url: summaryField(text, 'URL'),
-      discovered: file.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || '',
+      discovered: fullPath.match(/(\d{4}-\d{2}-\d{2})/)?.[1] || '',
       whyItFits: scored.reasoning,
       requirements: scored.missingRequirements,
       gaps: scored.weaknesses,
