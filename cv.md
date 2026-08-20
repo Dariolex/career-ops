@@ -7,7 +7,7 @@ Available to relocate within the EU · EU citizen (Italy)
 
 ## Professional Summary
 
-Head of Privacy at one of Italy's leading non-profit healthcare and research foundations (IRCCS), leading a 22-person privacy network across 28 centres and a register of 358 processing activities. Built the organisation's first structured privacy governance model and authored its AI policy. 18 years in data protection, AI and cybersecurity law across healthcare, public sector and Big Four advisory, with a consistent record of engagement with the Italian Data Protection Authority. IAPP-certified (FIP, CIPP/E, CIPM); Italian qualified lawyer.
+Head of Privacy at one of Italy's leading non-profit healthcare and research foundations (IRCCS), leading a 22-person privacy network across 28 centres and a register of 358 processing activities. Built the organisation's first structured privacy governance model, drafts corporate policies and reports directly to executive management and the Board of Directors. 14 years in data protection across healthcare, public sector and Big Four advisory; 3 years in cybersecurity and NIS2 regulation; 1 year in AI governance, having authored the Foundation's AI policy; 2 years in financial services including AML/KYC compliance. Consistent record of engagement with the Italian Data Protection Authority. IAPP-certified (FIP, CIPP/E, CIPM); Italian qualified lawyer.
 
 ## Core Competencies
 
@@ -16,6 +16,8 @@ GDPR Compliance · Privacy Programme Management · Team Leadership · Data Prote
 EU AI Act (Regulation 2024/1689) · AI Governance & AI Policy · AI System Inventory & Risk Classification · Automated Decision-Making (GDPR Art. 22) · NIS2 Directive
 
 Personal Data Breach Management (GDPR Art. 33/34) · Supervisory Authority Engagement · Data Processing Agreements & Vendor Risk · Cross-Border Transfers & Transfer Impact Assessments (TIA) · Digital Health & Clinical Research Data
+
+Corporate Policy Drafting · Executive & Board of Directors Reporting · Financial Services · AML/KYC Compliance
 
 ## Esperienza professionale
 
@@ -31,7 +33,7 @@ Leading Italian non-profit healthcare and scientific research foundation (IRCCS)
 
 **Ongoing responsibilities**
 - Own the Records of Processing Activities (RoPA) covering 358 processing activities and manage data subject rights requests (DSAR).
-- Report to executive management on data protection, NIS2 and artificial intelligence.
+- Draft corporate policies and report to executive management and the Board of Directors on data protection, NIS2 and artificial intelligence.
 - Deliver 15 Data Protection Impact Assessments (DPIA) per year for clinical research and digital health initiatives.
 - Assess 10 personal data breaches per year, 6 above the notification threshold to the Italian Data Protection Authority (Garante).
 - Complete 10 Transfer Impact Assessments (TIA) and 6 Legitimate Interest Assessments (LIA) per year, applying Standard Contractual Clauses and supplementary measures.
