@@ -49,7 +49,11 @@ const TIERS = {
   },
   full: {
     model: 'claude-sonnet-5',
-    maxTokens: 8192,
+    // 16000 non 8192: senza temperature (rifiutata dal modello, v. sopra) le
+    // risposte sono più verbose e senza margine 8192 tronca prima dei
+    // blocchi finali (SCORE_SUMMARY/CAREER_SCORE), facendo fallire la
+    // validazione anche su output altrimenti corretti.
+    maxTokens: 16000,
     modes: ['modes/_shared.md', 'modes/oferta.md', 'modes/_career-score.md'],
     profile: 'modes/_profile.md',
     includeCv: true,
