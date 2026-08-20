@@ -1,0 +1,14 @@
+timestamp	company	status
+2026-08-20T13:20:42.862Z	Stripe	reachable
+2026-08-20T13:20:42.862Z	Workday	reachable
+2026-08-20T13:20:42.862Z	HubSpot	empty
+2026-08-20T13:20:42.862Z	Intercom	reachable
+2026-08-20T13:20:42.862Z	Adyen	reachable
+2026-08-20T13:20:42.862Z	Elastic	reachable
+2026-08-20T13:20:42.862Z	Miro	slug_gone
+2026-08-20T13:20:42.862Z	Anthropic	reachable
+2026-08-20T13:20:42.862Z	OpenAI	slug_gone
+2026-08-20T13:20:42.862Z	Mistral AI	empty
+2026-08-20T13:20:42.862Z	Hugging Face	reachable
+2026-08-20T13:20:42.862Z	Scalapay	slug_gone
+2026-08-20T13:20:42.862Z	N26	reachable
