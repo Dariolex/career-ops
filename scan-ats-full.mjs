@@ -739,7 +739,7 @@ async function main() {
       const dedupUrl = normalizeUrlForDedup(job.url);
       if (seenUrls.has(dedupUrl)) continue;
       seenUrls.add(dedupUrl); // intra-scan dedup
-      newOffers.push({ ...job, source: `${sourceName}-full`, dateStatus: job.postedAt ? 'dated' : 'unknown' });
+      newOffers.push({ ...job, source: `${sourceName}-full`, scanLane: 'ats-sweep', dateStatus: job.postedAt ? 'dated' : 'unknown' });
     }
   };
 

@@ -1773,6 +1773,20 @@ export function formatPipelineOffer(offer) {
   // posted:, before note:, for a stable serialization.
   const trust = formatTrustSegment(offer);
   if (trust) line = `${line} | ${trust}`;
+  // Segmento etichettato di corsia: quale scanner ha prodotto la riga
+  // ('tracked' per scan.mjs, 'ats-sweep' per scan-ats-full.mjs). Cavalca come
+  // posted:/trust:/note: e sta dopo trust: e prima di note:, cosi note: resta
+  // l'ultimo segmento — e' testo libero e deve poter contenere qualsiasi cosa
+  // senza ambiguita' di parsing.
+  //
+  // NON si chiama `source`: offer.source esiste gia' e finisce nella colonna
+  // `portal` di scan-history.tsv (formatScanHistoryRow, sotto), dove porta il
+  // provider — 'greenhouse-api', 'lever-full'. Sono due informazioni diverse e
+  // devono restare due campi diversi.
+  //
+  // Un'offerta senza `scanLane` produce output byte-identico a prima, come per `note`.
+  const scanLane = typeof offer.scanLane === 'string' ? sanitizeMarkdownField(offer.scanLane) : '';
+  if (scanLane) line = `${line} | scan: ${scanLane}`;
   // Optional free-text ranking signal (e.g. a curated-list flag an importer
   // attaches). Labeled — not positional like location/compensation — so it can
   // ride on any row shape (bare URL, 3-, 4-, or 5-column) without a reader
@@ -1780,6 +1794,62 @@ export function formatPipelineOffer(offer) {
   // source-specific, and an offer without `note` produces byte-identical output.
   const note = typeof offer.note === 'string' ? sanitizeMarkdownField(offer.note) : '';
   return note ? `${line} | note: ${note}` : line;
+}
+
+/**
+ * Inverso di formatPipelineOffer: legge una riga di data/pipeline.md e ne
+ * restituisce i campi.
+ *
+ * Vive adiacente al formatter di proposito: sono un unico contratto in due
+ * direzioni, ed e' lo stesso motivo per cui i due scanner condividono un solo
+ * writer. Chi cambia il formato deve vedere il parser nello stesso schermo.
+ *
+ * Lo split su '|' e' sicuro perche' sanitizeMarkdownField sostituisce ogni pipe
+ * nei valori con '/' e sanitizePipelineUrl lo percent-encoda: nessun campo puo'
+ * contenere il separatore.
+ *
+ * @param {string} line - una riga del file.
+ * @returns {{url:string,done:boolean,company:string,title:string,location:string,compensation:string,posted:string,trust:string,scanLane:string,note:string}|null}
+ *   null se la riga non e' una voce di pipeline (intestazioni, prosa, vuote).
+ */
+export function parsePipelineLine(line) {
+  if (typeof line !== 'string') return null;
+  const m = line.match(/^\s*-\s*\[([ xX])\]\s*(.+)$/);
+  if (!m) return null;
+
+  const cells = m[2].split('|').map(cell => cell.trim());
+  const url = cells[0] || '';
+  // Le voci di pipeline sono URL http(s) oppure riferimenti local: a JD
+  // archiviate (AGENTS.md § "JD captures"). Tutto il resto non e' una voce.
+  if (!/^(https?:\/\/|local:)/i.test(url)) return null;
+
+  const parsed = {
+    url,
+    done: m[1].toLowerCase() === 'x',
+    company: '', title: '', location: '', compensation: '',
+    posted: '', trust: '', scanLane: '', note: '',
+  };
+
+  // I segmenti etichettati possono stare su qualsiasi forma di riga; quelli
+  // posizionali (company, title, location, compensation) sono in ordine fisso.
+  // 'scan' e' l'etichetta di scanLane.
+  const LABELED = /^(posted|trust|scan|note)\s*:\s*([\s\S]*)$/i;
+  const positional = [];
+  for (const cell of cells.slice(1)) {
+    const labeled = cell.match(LABELED);
+    if (labeled) {
+      const key = labeled[1].toLowerCase() === 'scan' ? 'scanLane' : labeled[1].toLowerCase();
+      parsed[key] = labeled[2].trim();
+    } else {
+      positional.push(cell);
+    }
+  }
+
+  parsed.company = positional[0] ?? '';
+  parsed.title = positional[1] ?? '';
+  parsed.location = positional[2] ?? '';
+  parsed.compensation = positional[3] ?? '';
+  return parsed;
 }
 
 // postedAt arrives as epoch ms (or absent). Convert to 'YYYY-MM-DD', or '' when missing.
@@ -2700,6 +2770,7 @@ async function main() {
         newOffers.push({
           ...job,
           source: sourceName,
+          scanLane: 'tracked',
           tracked: Boolean(careersUrlDomain),
           careersUrlDomain,
         });
