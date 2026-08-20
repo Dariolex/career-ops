@@ -1,9 +1,9 @@
 candidate:
-  full_name: "DA COMPLETARE"
+  full_name: "Dario Cavarra"
   email: "dariocav@hotmail.it"
-  phone: "DA COMPLETARE"
-  location: "Italy"
-  linkedin: "DA COMPLETARE"
+  phone: "+39 348 841 4481"
+  location: "Milan, Italy"
+  linkedin: "linkedin.com/in/dariocavarra"
   photo: ""
 
 target_roles:
@@ -32,10 +32,12 @@ target_roles:
       fit: "adjacent"
 
 narrative:
-  headline: "DA COMPLETARE"
+  headline: "Head of Privacy at Fondazione Don Carlo Gnocchi ETS (IRCCS) — 18 anni in data protection, AI e cybersecurity law tra sanità, settore pubblico e Big Four advisory (EY Law, PwC Law), con contatto costante con il Garante per la protezione dei dati personali."
   exit_story: "DA COMPLETARE"
   superpowers:
-    - "DA COMPLETARE"
+    - "Costruzione da zero di modelli di governance privacy a scala (rete di 22 persone su 28 centri, 358 attività di trattamento censite) in un'organizzazione sanitaria no-profit complessa"
+    - "Autore della policy AI della Fondazione, incluso il registro dei sistemi AI con classificazione del rischio in ottica EU AI Act (Reg. 2024/1689)"
+    - "Track record consolidato di interlocuzione diretta con l'Autorità Garante per la protezione dei dati personali su data breach e progetti ad alto profilo"
 
 compensation:
   target_range: "DA COMPLETARE"
@@ -44,9 +46,9 @@ compensation:
 
 location:
   country: "Italy"
-  city: "DA COMPLETARE"
+  city: "Milan"
   timezone: "CET"
-  visa_status: "DA COMPLETARE"
+  visa_status: "Cittadino UE — nessun visto richiesto in UE/SEE"
   authorized_in: ["Italy", "European Union"]
   needs_sponsorship: false
 

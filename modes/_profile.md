@@ -2,8 +2,14 @@
 
 ## Chi sono
 
-DA COMPLETARE: 2-4 frasi di sintesi (ruolo attuale, anni di esperienza, ambiti
-principali, settori).
+Head of Privacy Service presso Fondazione Don Carlo Gnocchi ETS (IRCCS), leader
+italiano no-profit in sanità e ricerca scientifica — 5.000+ professionisti, 28 centri
+in 9 regioni. Ho costruito da zero il primo modello strutturato di governance privacy
+dell'organizzazione (rete di 22 persone su 28 centri, 358 attività di trattamento
+censite) e ho scritto la policy AI della Fondazione. 18 anni di esperienza in data
+protection, diritto dell'AI e cybersecurity tra sanità, settore pubblico e advisory
+Big Four (EY Law, PwC Law), con interlocuzione costante con il Garante Privacy.
+Certificazioni IAPP (FIP, CIPP/E, CIPM); avvocato abilitato in Italia.
 
 ## Domini principali
 
