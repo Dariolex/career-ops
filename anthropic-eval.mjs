@@ -195,7 +195,9 @@ async function callAnthropic({ apiKey, model, maxTokens, system, userText }) {
     body: JSON.stringify({
       model,
       max_tokens: maxTokens,
-      temperature: 0.4,
+      // temperature non passato: rifiutato con 400 ("temperature is
+      // deprecated for this model") dai modelli Claude correnti — usa il
+      // default del server.
       // Il prefisso statico (shared + oferta + cv) è marcato per il caching:
       // si ripete identico a ogni offerta della stessa giornata.
       system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
