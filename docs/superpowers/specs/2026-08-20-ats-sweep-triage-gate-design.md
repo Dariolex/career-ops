@@ -73,19 +73,30 @@ Altri vincoli rilevanti:
 
 ## Design
 
-### 1. Contratto dati: marcatore di sorgente e parser
+### 1. Contratto dati: marcatore di corsia e parser
 
-`source` diventa un campo dell'oggetto offerta, come `note`: una stringa,
-nessun branch specifico dentro il formatter, coerente con il commento esistente
-su `note` (*"it stays generic: nothing here is source-specific"*).
+> **Correzione applicata in fase di piano.** Questa sezione diceva `source`.
+> Il campo `offer.source` **esiste già ed è portante**: `scan.mjs:2702` lo mette
+> a `sourceName`, `scan-ats-full.mjs:742` a `` `${sourceName}-full` ``, e
+> `formatScanHistoryRow` (`scan.mjs:1794`) lo scrive nella colonna `portal` di
+> `data/scan-history.tsv`, dove oggi si leggono valori come `greenhouse-api`.
+> Riusarlo romperebbe quella colonna. Scartati per la stessa ragione anche
+> `tracked` (esiste, `scan.mjs:2703`, con il significato di eleggibilità al
+> rediscovery fallback), `lane` e `discovery` (il vocabolario del progetto li
+> usa già per altro). Il campo è quindi **`scanLane`**, con etichetta markdown
+> **`scan:`**.
 
-`formatPipelineOffer` (`scan.mjs:1750`) emette `| source: {valore}` **dopo
+`scanLane` è un campo dell'oggetto offerta, come `note`: una stringa, nessun
+branch specifico dentro il formatter, coerente con il commento esistente su
+`note` (*"it stays generic: nothing here is source-specific"*).
+
+`formatPipelineOffer` (`scan.mjs:1750`) emette `| scan: {valore}` **dopo
 `trust:` e prima di `note:`**, così `note:` resta l'ultimo segmento: è testo
 libero e deve poter contenere qualsiasi cosa senza ambiguità di parsing.
-Un'offerta senza `source` produce output byte-identico a oggi.
+Un'offerta senza `scanLane` produce output byte-identico a oggi.
 
-- `scan.mjs` scrive `source: tracked`
-- `scan-ats-full.mjs` scrive `source: ats-sweep` (importa già `appendToPipeline`
+- `scan.mjs` scrive `scan: tracked`
+- `scan-ats-full.mjs` scrive `scan: ats-sweep` (importa già `appendToPipeline`
   da `scan.mjs`, riga 46: il writer è condiviso)
 
 **Regola di default:** marcatore assente = trattata come `tracked`, quindi
@@ -141,10 +152,20 @@ degradato e non vuoto.
 ### 3. Gate e budget
 
 **Stadio 1 — gate e ranking sui soli metadati.** `pipeline.md` porta già URL,
-azienda, titolo, località e data. Una sola chiamata Haiku riceve i metadati di
-tutte le offerte `ats-sweep` in coda e restituisce, per ciascuna, un punteggio e
-una riga di motivazione. Nessun fetch, nessun Playwright. È il lavoro per cui
-esiste il tier `triage` con `modes/_brief.md`.
+azienda, titolo, località e data. Le offerte `ats-sweep` in coda vengono
+giudicate dal tier `triage` (Haiku, `modes/_brief.md`) sui soli metadati:
+nessun fetch, nessun Playwright.
+
+> **Correzione applicata in fase di piano.** Questa sezione prevedeva **una
+> sola chiamata** con i metadati di tutte le offerte. `modes/triage.md`
+> definisce però già un contratto machine-readable **per singolo annuncio** —
+> `TRIAGE: {PASS|MARGINAL|FAIL|SKIP} | {Company} | {Role} | {Score}/5 | {reason}`,
+> con scritto *"the caller parses them"* — e `anthropic-eval.mjs` espone già
+> `--tier triage`. Il piano usa quindi **una chiamata per offerta** riusando
+> quel contratto: nessun secondo formato di triage da mantenere in parallelo al
+> primo, e una risposta malformata perde un'offerta invece di tutte. Costo: con
+> `_brief.md` a ~700 token, 100 offerte fanno circa 70k token di input su un
+> modello economico, in sequenza 2-3 minuti.
 
 **Scala del punteggio:** 0-5 con un decimale, la stessa già usata dalla
 modalità interattiva, e la soglia riusa la chiave esistente
