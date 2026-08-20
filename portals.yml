@@ -194,9 +194,9 @@ tracked_companies:
     api: https://boards-api.greenhouse.io/v1/boards/elastic/jobs
     enabled: true
   - name: Miro
-    careers_url: https://miro.com/careers
-    api: https://boards-api.greenhouse.io/v1/boards/miro/jobs
+    careers_url: https://jobs.ashbyhq.com/miro
     enabled: true
+    notes: "Migrata da Greenhouse ad Ashby."
 
   # -- Laboratori AI: ruoli di AI governance e policy --
   - name: Anthropic
@@ -204,9 +204,9 @@ tracked_companies:
     api: https://boards-api.greenhouse.io/v1/boards/anthropic/jobs
     enabled: true
   - name: OpenAI
-    careers_url: https://openai.com/careers
-    api: https://boards-api.greenhouse.io/v1/boards/openai/jobs
+    careers_url: https://jobs.ashbyhq.com/openai
     enabled: true
+    notes: "Migrata da Greenhouse ad Ashby."
   - name: Mistral AI
     careers_url: https://jobs.lever.co/mistral
     enabled: true
@@ -225,8 +225,10 @@ tracked_companies:
     enabled: true
     notes: "Milano: fintech regolamentata."
   - name: Scalapay
-    careers_url: https://jobs.lever.co/scalapay
+    careers_url: https://job-boards.greenhouse.io/scalapaysrl
+    api: https://boards-api.greenhouse.io/v1/boards/scalapaysrl/jobs
     enabled: true
+    notes: "Migrata da Lever a Greenhouse (slug legale: scalapaysrl)."
 
   # -- DACH --
   - name: SAP
