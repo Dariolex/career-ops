@@ -55,7 +55,6 @@ title_filter:
     # -- Tedesco --
     - "Datenschutz"
     - "Datenschutzbeauftragter"
-    - "Compliance Manager"
     - "Justiziar"
     - "Syndikusrechtsanwalt"
   negative:

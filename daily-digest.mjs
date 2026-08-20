@@ -95,8 +95,18 @@ function summaryField(text, key) {
   return text.match(new RegExp(`^\\s*${key}:\\s*(.+)$`, 'mi'))?.[1]?.trim() || null;
 }
 
-function collectEntries(date) {
-  const reportsDir = join(ROOT, 'reports');
+/**
+ * Legge reports/ e raccoglie le valutazioni del giorno dato, estraendo
+ * Career Score + i campi SCORE_SUMMARY (ROLE, COMPANY, LOCATION, SALARY, URL).
+ * Esportata perché è il punto in cui un report testuale reale diventa gli
+ * oggetti che renderDigest() consuma — il test coverage gap segnalato dalla
+ * review finale copriva solo renderDigest() con oggetti costruiti a mano, mai
+ * questo passaggio.
+ * @param {string} date - YYYY-MM-DD
+ * @param {string} [reportsDirOverride] - directory reports/ da leggere (per i test)
+ */
+export function collectEntries(date, reportsDirOverride) {
+  const reportsDir = reportsDirOverride || join(ROOT, 'reports');
   if (!existsSync(reportsDir)) return [];
 
   const entries = [];

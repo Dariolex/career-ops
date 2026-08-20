@@ -9,8 +9,12 @@
  * Uso: node career-score.mjs <file-valutazione.md>
  */
 
-import { readFileSync } from 'fs';
-import { pathToFileURL } from 'url';
+import { readFileSync, existsSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+import yaml from 'js-yaml';
+
+const ROOT = dirname(fileURLToPath(import.meta.url));
 
 export const WEIGHTS = {
   professional_fit:   25,
@@ -24,8 +28,43 @@ export const WEIGHTS = {
 
 export const DEFAULT_THRESHOLDS = { apply: 75, consider: 60, low_priority: 45 };
 
+/**
+ * Legge career_score.thresholds da config/profile.yml, con fallback a
+ * DEFAULT_THRESHOLDS se il file manca, non ha la chiave, o non è valido.
+ * Stesso pattern di run-evaluations.mjs::loadMaxEvaluations() per
+ * max_full_evaluations: lettura best-effort, mai un errore bloccante.
+ * @param {string} [root=ROOT] - Radice del repo da cui leggere config/profile.yml.
+ * @returns {{apply: number, consider: number, low_priority: number}}
+ */
+export function loadThresholds(root = ROOT) {
+  const profilePath = join(root, 'config', 'profile.yml');
+  if (existsSync(profilePath)) {
+    try {
+      const profile = yaml.load(readFileSync(profilePath, 'utf-8')) || {};
+      const t = profile.career_score?.thresholds;
+      if (
+        t
+        && Number.isFinite(t.apply)
+        && Number.isFinite(t.consider)
+        && Number.isFinite(t.low_priority)
+      ) {
+        return { apply: t.apply, consider: t.consider, low_priority: t.low_priority };
+      }
+    } catch {
+      // YAML malformato: fallback silenzioso alle soglie di default.
+    }
+  }
+  return DEFAULT_THRESHOLDS;
+}
+
 const DIMENSION_KEYS = Object.keys(WEIGHTS);
 const BLOCK_RE = /---CAREER_SCORE---\s*([\s\S]*?)---END_CAREER_SCORE---/;
+
+/** Costruisce un pattern case-insensitive per un'etichetta nota in maiuscolo,
+ * senza dover applicare il flag "i" all'intera regex (vedi parseList). */
+function ciLabel(label) {
+  return label.split('').map(c => `[${c.toLowerCase()}${c.toUpperCase()}]`).join('');
+}
 
 /** Le liste puntate usano "- Nessuno" per dichiarare l'assenza; qui diventa []. */
 function parseList(body, label) {
@@ -34,7 +73,13 @@ function parseList(body, label) {
     // correzione matcha il carattere letterale "Z", che con il flag "i"
     // tronca la cattura alla prima "z" incontrata nel testo (es. dentro
     // "Sovrapposizione"). $(?![\s\S]) è l'idioma corretto per fine-stringa.
-    new RegExp(`^${label}:\\s*$([\\s\\S]*?)(?=^[A-Z_]+:|$(?![\\s\\S]))`, 'mi'),
+    //
+    // Il terminatore [A-Z_]+: NON usa il flag "i" (a differenza dell'etichetta,
+    // resa case-insensitive esplicitamente con ciLabel): con "i" applicato
+    // all'intera regex, [A-Z_]+ matcherebbe anche "word:" in minuscolo dentro
+    // il testo di un bullet, troncando la lista in anticipo. Qui il terminatore
+    // scatta solo su una VERA etichetta maiuscola (>=2 caratteri A-Z/underscore).
+    new RegExp(`^${ciLabel(label)}:\\s*$([\\s\\S]*?)(?=^[A-Z_]{2,}:|$(?![\\s\\S]))`, 'm'),
   );
   if (!section) return [];
   return section[1]
@@ -86,7 +131,9 @@ export function parseCareerScoreBlock(text) {
     dimensions[key] = { score, reasoning };
   }
 
-  const reasoningMatch = body.match(/^REASONING:\s*([\s\S]*?)$/mi);
+  // Stesso idioma end-of-string di parseList: un bare "$" con multiline
+  // tronca REASONING alla prima riga a causa del quantificatore lazy.
+  const reasoningMatch = body.match(/^REASONING:\s*([\s\S]*?)$(?![\s\S])/mi);
 
   return {
     dimensions,
@@ -145,7 +192,7 @@ export function classify(total, thresholds = DEFAULT_THRESHOLDS) {
  * @param {string} text - Output completo dell'LLM.
  * @param {{thresholds?: Object}} [options]
  */
-export function evaluateCareerScore(text, { thresholds = DEFAULT_THRESHOLDS } = {}) {
+export function evaluateCareerScore(text, { thresholds = loadThresholds() } = {}) {
   const parsed = parseCareerScoreBlock(text);
   const computed = computeCareerScore(parsed.dimensions);
   return {

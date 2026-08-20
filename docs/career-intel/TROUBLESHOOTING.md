@@ -30,6 +30,26 @@ tra i file caricati dal tier `full` in `anthropic-eval.mjs`.
 Verificare che il workflow abbia `permissions: contents: write`. Se il messaggio
 riguarda file ignorati, controllare che il comando usi `git add -f`.
 
+## `⚠ SKIP <url>` in run-evaluations.mjs — "no job-description text available"
+
+Comportamento atteso, non un errore. Non esiste ancora una pipeline che scarica e
+converte una posting URL in testo JD reale: senza guard, lo script manderebbe la nuda
+URL all'LLM come se fosse la job description, producendo una valutazione allucinata
+ma formattata con sicurezza, a spese di budget reale. `run-evaluations.mjs` si rifiuta
+di farlo di default e salta l'URL con questo warning.
+
+**Non impostare `CAREER_INTEL_ALLOW_URL_AS_TEXT=1` per "risolvere" questo messaggio.**
+È un override esplicito per chi vuole testare deliberatamente il vecchio
+comportamento (invio della URL nuda), non un fix. **Nessuna esecuzione live/non-dry-run
+va tentata finché una vera pipeline di estrazione JD non sostituisce questo guard** —
+è un prerequisito, non un nice-to-have. Vedi `docs/career-intel/GITHUB_ACTIONS.md`.
+
+## Un'offerta non viene mai valutata, nemmeno con il guard disattivato
+
+Controllare `data/evaluated-urls.tsv`: se l'URL è già presente, `run-evaluations.mjs`
+la salta come già valutata (dedup, vedi `docs/career-intel/GITHUB_ACTIONS.md`). Per
+forzare una rivalutazione, rimuovere manualmente la riga corrispondente da quel file.
+
 ## `unknown provider` in validate-portals
 
 La voce `provider` di quell'azienda non corrisponde a nessun modulo in `providers/`.

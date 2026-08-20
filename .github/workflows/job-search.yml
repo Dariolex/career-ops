@@ -104,7 +104,24 @@ jobs:
           git config user.email "noreply@github.com"
           # -f perché data/, reports/ e i file di profilo sono gitignorati
           # nel system layer: la decisione D4 li vuole tracciati in questo fork.
-          git add -f data/ reports/ obsidian/ || true
+          # Elenco esplicito, non un `data/` generico: data/offers/* e
+          # data/contacts.tsv sono PII gitignorate anche dentro data/ (vedi
+          # DATA_CONTRACT.md) e -f forza l'aggiunta anche di file ignorati —
+          # un `data/` bare le farebbe finire nel commit del workflow.
+          # Un file per `git add`: un singolo pathspec mancante (es. nessuna
+          # valutazione oggi -> data/evaluated-urls.tsv non esiste) fa fallire
+          # l'intero comando se raggruppato, bloccando anche i path esistenti.
+          for path in \
+            data/pipeline.md \
+            data/scan-history.tsv \
+            data/scan-runs.tsv \
+            data/portal-health.tsv \
+            data/evaluated-urls.tsv \
+            reports/ \
+            obsidian/ \
+          ; do
+            git add -f "$path" || true
+          done
           if git diff --staged --quiet; then
             echo "Nessuna modifica da committare."
           else

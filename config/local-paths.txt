@@ -14,3 +14,11 @@ modes/_career-score.md
 CAREER-INTEL.md
 obsidian/
 reports/daily/
+
+# NOT declared here, despite being listed in this fork's original plan step:
+# .github/workflows/job-search.yml, docs/career-intel/, docs/superpowers/
+# They collide with SYSTEM_PATHS prefix entries ('.github/', 'docs/') in
+# update-system.mjs, so localUserPaths() rejects them outright (see its
+# "the system layer ships it" error). They are already covered as
+# system-layer paths, not fork-owned — this is intentional, not an
+# oversight left over from the plan.

@@ -27,5 +27,10 @@ mai committato.
 
 ## Cosa non finisce mai nel repository
 
-Chiavi API, password, cookie, token di sessione, credenziali OAuth. I log del workflow
-riportano titolo, azienda e punteggio, mai il contenuto del CV.
+Chiavi API, password, cookie, token di sessione, credenziali OAuth. Il file `cv.md`
+grezzo non viene mai stampato nei log. Lo step "Job summary" del workflow riporta però
+il digest completo — titolo, azienda, punteggio e anche i testi di `reasoning` /
+`strengths` / `weaknesses` prodotti dalla valutazione, che possono citare fatti tratti
+dal CV (es. "10 anni di esperienza GDPR" se il CV lo dichiara). Il repository è privato,
+quindi il rischio è basso, ma non è corretto dire che il contenuto del CV "non finisce
+mai" nei log: alcuni fatti derivati ci finiscono, il testo integrale del file no.

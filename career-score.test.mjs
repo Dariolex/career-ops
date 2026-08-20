@@ -115,6 +115,28 @@ ok('rifiuta un punteggio non numerico', throws(() => parseCareerScoreBlock(
 ok('rifiuta unknown fuori da compensation', throws(() => parseCareerScoreBlock(
   validBlock.replace('GEOGRAPHY: 85 | Dublino, ibrido.', 'GEOGRAPHY: unknown'))));
 
+// --- parseList: il terminatore non deve scattare su "word:" minuscolo dentro un bullet ---
+
+const bulletWithColon = validBlock.replace(
+  '- Sovrapposizione diretta con i requisiti',
+  '- Sovrapposizione diretta con i requisiti, focus: piattaforme AI Act',
+);
+const parsedBullet = parseCareerScoreBlock(bulletWithColon);
+ok('un "word:" minuscolo dentro un bullet non tronca la lista',
+  parsedBullet.strengths.length === 2
+  && parsedBullet.strengths[0].includes('focus: piattaforme AI Act'));
+
+// --- REASONING multi-riga non deve troncare alla prima riga ---
+
+const multilineReasoning = validBlock.replace(
+  'REASONING: Ruolo fortemente allineato al profilo.',
+  'REASONING: Ruolo fortemente allineato al profilo.\nSeconda riga di dettaglio.',
+);
+const parsedMultiline = parseCareerScoreBlock(multilineReasoning);
+ok('REASONING cattura tutte le righe fino a fine blocco',
+  /fortemente allineato/.test(parsedMultiline.reasoning)
+  && /Seconda riga di dettaglio/.test(parsedMultiline.reasoning));
+
 // --- Integrazione ---
 
 const evaluated = evaluateCareerScore(validBlock, { thresholds: DEFAULT_THRESHOLDS });

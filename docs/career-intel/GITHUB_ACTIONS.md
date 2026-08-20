@@ -42,3 +42,31 @@ Tre livelli. Il primo — discovery, deduplicazione e liveness — non consuma t
 secondo filtra con un modello economico. Il terzo, il più costoso, gira solo sui
 sopravvissuti e solo fino al tetto configurato in
 `config/profile.yml` → `career_score.max_full_evaluations`.
+
+## Guard: nessuna estrazione JD reale, ancora (IMPORTANTE)
+
+`run-evaluations.mjs` legge solo URL da `data/pipeline.md` — non esiste ancora una
+pipeline che scarica e converte la posting in testo JD reale. Senza guard, lo script
+manderebbe la nuda URL a `anthropic-eval.mjs --text <url>`, che la userebbe come se
+fosse la job description: l'LLM produrrebbe una valutazione formattata con sicurezza
+ma interamente allucinata, spendendo budget reale su output inventato.
+
+Per questo `run-evaluations.mjs` rifiuta di default: se il "testo" da inviare è solo
+l'URL nuda (nessun altro contenuto), la salta con un warning e passa alla successiva.
+Solo impostando `CAREER_INTEL_ALLOW_URL_AS_TEXT=1` (env var, non un secret — non va
+mai messo tra i secrets del repo) lo script torna al vecchio comportamento e invia
+l'URL nuda comunque, con un warning aggiuntivo prima di farlo.
+
+**Nessuna esecuzione live/non-dry-run va tentata finché una vera pipeline di
+estrazione JD non sostituisce questo guard.** Questo non è un nice-to-have: eseguire
+il workflow non in `dry_run` con `CAREER_INTEL_ALLOW_URL_AS_TEXT=1` prima che quella
+pipeline esista significa pagare per valutazioni su testo che non è mai stato letto
+dall'LLM — e i report prodotti (score, Career Score, tracker) sarebbero comunque
+scritti nel repository come se fossero validi.
+
+## Dedup delle valutazioni
+
+Ogni URL valutata con successo viene appesa a `data/evaluated-urls.tsv`
+(`url\tdata ISO`). `run-evaluations.mjs` la consulta prima di ogni run e salta le URL
+già presenti: senza questo, la stessa offerta verrebbe rivalutata (e rifatturata)
+a ogni esecuzione, e la coda in `data/pipeline.md` non si svuoterebbe mai.
