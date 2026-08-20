@@ -194,6 +194,17 @@ content_filter:
 # Aziende con team privacy e AI governance strutturati nelle geografie target.
 # La lista non pretende di essere esaustiva: scan-ats-full.mjs copre il resto
 # spazzando l'intero dataset ATS pubblico con gli stessi filtri di titolo.
+#
+# ATTENZIONE — board NON scansionabili, verificati il 2026-08-20. Non riaggiungerli
+# sulla fiducia di discover-ats.mjs: lo script risolve per slug e su questi nomi
+# becca omonimie, non i board reali.
+#   SAP        -> sap.bamboohr.com: account demo. 4 annunci generici a Mayfair e
+#                 Marsiglia, con campi incoerenti (city Berlin / state Brandenburg).
+#   Personio   -> personio.recruitee.com: sandbox. Unico annuncio "API Job - Berlin -
+#                 Musterstr 1", company_name "FD Sandbox".
+# Restano irrisolti (portali JS-rendered, board trovati ma con 0 annunci):
+#   Booking.com, Bending Spoons, Siemens, Zalando. Valgono un nuovo tentativo piu'
+#   avanti, oppure li copre lo sweep ATS completo.
 tracked_companies:
 
   # -- Dublino: headquarter EMEA con team privacy consolidati --
@@ -258,9 +269,9 @@ tracked_companies:
     enabled: true
     notes: "Milano."
   - name: Satispay
-    careers_url: https://www.satispay.com/careers
+    careers_url: https://jobs.ashbyhq.com/satispay
     enabled: true
-    notes: "Milano: fintech regolamentata."
+    notes: "Milano: fintech regolamentata. Board Ashby risolto con discover-ats.mjs; il careers_url pubblico non esponeva un ATS scansionabile."
   - name: Scalapay
     careers_url: https://job-boards.greenhouse.io/scalapaysrl
     api: https://boards-api.greenhouse.io/v1/boards/scalapaysrl/jobs
