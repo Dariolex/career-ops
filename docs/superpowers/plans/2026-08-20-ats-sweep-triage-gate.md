@@ -1337,11 +1337,23 @@ finisce nel job summary con una soglia di allarme al 20%."
 
 _Da compilare eseguendo il Task 0, prima del Task 5._
 
-| Sorgente | Campione | Match | Irraggiungibili |
-|---|---|---|---|
-| Greenhouse | 1500 | | |
-| Lever | 1500 | | |
+| Sorgente | Campione (cap) | Totale board | Match | Irraggiungibili | % irraggiungibili |
+|---|---|---|---|---|---|
+| Greenhouse | 1500 di 8333 (18%) | 8333 | 1 | 537 | 35.8% |
+| Lever | 1500 di 4368 (34%) | 4368 | 0 | 814 | 54.3% |
 
 **Stima settimanale:**
+
+Il volume misurato è bassissimo: **1 match su 3000 board scansionate**, di cui uno solo (Greenhouse/bitpanda, Senior AFC Compliance Officer — Berlino) in un campione del 18%. Estrapolando linearmente sui 38.854 board totali:
+
+- Greenhouse: 1 × (8333 / 1500) ≈ **5-6 match/settimana**
+- Lever: 0 × (4368 / 1500) ≈ **0 match/settimana** (il 54% di board irraggiungibili sul campione Lever è un segnale di throttling: i match ci sono ma vengono persi silenziosamente)
+- Ashby (3161) + Workday (12884) + iCIMS (10108): non misurati direttamente, ma per proporzione con il filtro `title_filter` (14 keyword positive, tutte legal/compliance/privacy/AI-governance) il contributo atteso è nell'ordine di 5-15 match/settimana.
+
+**Ordine di grandezza: 10-25 match/settimana** dallo sweep completo, ampiamente dentro il budget `weekly_full_evaluations: 25`.
+
+**Decisione sulla soglia:** il volume è basso, ma non nullo. Il design prevede soglia permissiva ("sbagliare per eccesso") perché giudicare dai soli metadati è debole. Con ~10-25 offerte/settimana e un budget di 25 valutazioni, **la soglia va tenuta a `3.5` (il default già in `profile.yml`)**, non azzerata: uno sweep strozzato (Lever al 54% di irraggiungibili) perde match veri, e abbassare la soglia li recupererebbe solo a costo di più falsi positivi nel triage — ma il costo del triage Haiku è trascurabile (~700 token/offerta), quindi conviene tenere la rete larga.
+
+**Corollario operativo:** il tasso di irraggiungibili va tracciato nel job summary del workflow (soglia di allarme >20%, già violata da entrambi i campioni). Uno sweep "vuoto" con irraggiungibili alti è degrado, non assenza di mercato.
 
 **Soglia scelta di conseguenza:**
