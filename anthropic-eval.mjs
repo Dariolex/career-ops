@@ -220,7 +220,7 @@ async function callOpenRouter({ apiKey, system, userText, maxTokens }) {
       authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: process.env.CAREER_OPS_MODEL || 'google/gemini-2.5-pro:free',
+      model: process.env.CAREER_OPS_MODEL || 'google/gemma-4-31b-it:free',
       max_tokens: maxTokens,
       temperature: 0.4,
       messages: [
