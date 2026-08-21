@@ -62,20 +62,24 @@ const TIERS = {
   },
 };
 
+/** config/profile.yml, letto una volta sola. {} se assente o malformato. */
+let profileCache = null;
+function loadProfile() {
+  if (profileCache) return profileCache;
+  const path = join(ROOT, 'config', 'profile.yml');
+  if (!existsSync(path)) return (profileCache = {});
+  try { profileCache = yaml.load(readFileSync(path, 'utf-8')) || {}; }
+  catch { profileCache = {}; }
+  return profileCache;
+}
+
 /** language.output da config/profile.yml — 'en' se assente (stesso default
  * documentato in AGENTS.md § Output Language vs Market Modes). Lo script
  * headless non passa mai dai mode interattivi che iniettano questa direttiva,
  * quindi va fatto qui esplicitamente o l'output resta nell'inglese dei
  * template di sistema (modes/oferta.md, modes/_shared.md). */
 function outputLanguage() {
-  const path = join(ROOT, 'config', 'profile.yml');
-  if (!existsSync(path)) return 'en';
-  try {
-    const profile = yaml.load(readFileSync(path, 'utf-8')) || {};
-    return profile?.language?.output || 'en';
-  } catch {
-    return 'en';
-  }
+  return loadProfile()?.language?.output || 'en';
 }
 
 function languageDirective(lang) {
@@ -314,6 +318,14 @@ async function main() {
   // Solo il tier "full" (Blocchi A-G) porta le regole operative + il
   // contratto SCORE_SUMMARY: il triage ha una shape diversa e più leggera.
   if (tier.careerScore) parts.push(OPERATING_CONSTRAINTS);
+  // modes/triage.md costruisce la tabella dei verdetti in funzione di
+  // triage_threshold e dichiara che "the caller injects the resolved value;
+  // triage never reads config/profile.yml itself". Senza questa riga il
+  // modello riceve la regola e non il numero, e la soglia se la inventa.
+  if (!tier.careerScore) {
+    const threshold = loadProfile().pipeline?.triage_threshold ?? 3.5;
+    parts.push(`# Soglia risolta\n\ntriage_threshold = ${threshold}`);
+  }
   // Ultima in ordine: i modelli pesano di più le istruzioni recenti, e
   // questa deve vincere su qualunque lingua usata nei mode/CV/JD sopra.
   parts.push(languageDirective(outputLanguage()));
