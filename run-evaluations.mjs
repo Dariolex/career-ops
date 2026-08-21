@@ -34,11 +34,13 @@ import * as yaml from 'js-yaml';
 import { chromium } from 'playwright';
 import { extractJobDescription } from './jd-extract.mjs';
 import { parsePipelineLine } from './scan.mjs';
+import { gateEntries, formatRejectedRow } from './lib/triage-gate.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const EVALUATED_URLS_PATH = join(ROOT, 'data', 'evaluated-urls.tsv');
 const NEEDS_REVIEW_PATH = join(ROOT, 'data', 'needs-manual-review.tsv');
 const PIPELINE_PATH = join(ROOT, 'data', 'pipeline.md');
+const TRIAGE_REJECTED_PATH = join(ROOT, 'data', 'triage-rejected.tsv');
 
 /** Profilo utente, letto una volta: serve al tetto per run e al budget settimanale. */
 const profile = (() => {
@@ -159,6 +161,13 @@ function appendNeedsReview(url, code, reason) {
   appendFileSync(NEEDS_REVIEW_PATH, `${url}\t${today}\t${code}\t${safeReason}\n`, 'utf-8');
 }
 
+/** Client reale del tier triage: cattura lo stdout di anthropic-eval.mjs. */
+async function runTriageReal(text) {
+  return execFileSync(process.execPath, [
+    join(ROOT, 'anthropic-eval.mjs'), '--tier', 'triage', '--text', text,
+  ], { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'inherit'], env: process.env });
+}
+
 /**
  * Esegue il ciclo di valutazione completo.
  * Esportata per testabilità; chiamata automaticamente sotto se il file è main.
@@ -176,8 +185,8 @@ export async function runEvaluations() {
 
   const alreadyEvaluatedSkipped = allUrls.filter(url => evaluatedUrls.has(url)).length;
   const alreadyNeedsReviewSkipped = allUrls.filter(url => !evaluatedUrls.has(url) && needsReviewUrls.has(url)).length;
-  const candidateUrls = allUrls.filter(url => !evaluatedUrls.has(url) && !needsReviewUrls.has(url));
-  const urls = candidateUrls.slice(0, max);
+  const candidateEntries = allEntries.filter(e =>
+    !evaluatedUrls.has(e.url) && !needsReviewUrls.has(e.url));
 
   if (allUrls.length === 0) {
     console.log('Nessuna offerta da valutare.');
@@ -195,6 +204,29 @@ export async function runEvaluations() {
   if (alreadyNeedsReviewSkipped > 0) {
     console.log(`🔎 ${alreadyNeedsReviewSkipped} URL già segnalate per verifica manuale (data/needs-manual-review.tsv), saltate — vedi il digest giornaliero.`);
   }
+
+  // Le offerte da sweep passano dal gate di triage prima di meritare una
+  // valutazione Sonnet piena; le tracked lo bypassano e restano in testa.
+  const { tracked, sweep } = partitionByLane(candidateEntries);
+  const alreadyRejected = loadUrlSetFromTsv(TRIAGE_REJECTED_PATH);
+  const threshold = profile.pipeline?.triage_threshold ?? 3.5;
+
+  const { passed, rejected } = await gateEntries(sweep, {
+    threshold, runTriage: runTriageReal, alreadyRejected,
+  });
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  for (const r of rejected) {
+    appendFileSync(TRIAGE_REJECTED_PATH, formatRejectedRow(r.entry, r.score, r.reason, todayIso), 'utf-8');
+  }
+  if (rejected.length > 0) {
+    console.log(`🚪 ${rejected.length} offerte da sweep sotto la soglia ${threshold} — in data/triage-rejected.tsv, riassunte nel digest.`);
+  }
+
+  // Le tracked non passano dal gate e stanno in testa; le sopravvissute
+  // seguono in ordine di punteggio. La coda smette di essere servita in
+  // ordine di file.
+  const urls = [...tracked, ...passed.map(p => p.entry)].map(e => e.url).slice(0, max);
 
   if (urls.length === 0) {
     console.log('Nessuna offerta nuova da valutare (tutte già presenti in data/evaluated-urls.tsv, data/needs-manual-review.tsv, o tetto esaurito).');
