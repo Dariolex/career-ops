@@ -1356,4 +1356,23 @@ Il volume misurato è bassissimo: **1 match su 3000 board scansionate**, di cui 
 
 **Corollario operativo:** il tasso di irraggiungibili va tracciato nel job summary del workflow (soglia di allarme >20%, già violata da entrambi i campioni). Uno sweep "vuoto" con irraggiungibili alti è degrado, non assenza di mercato.
 
-**Soglia scelta di conseguenza:**
+## Esito dei dry-run completi (Task 7, Step 2) — 2026-08-21
+
+A differenza del campione del Task 0 (18-34% del dataset), questi run hanno coperto **il 100% di ogni sorgente** (`companiesScanned == companiesAvailable`, nessun cap, nessun outage):
+
+| Sorgente | Board | Annunci tenuti | Irraggiungibili | % irraggiungibili |
+|---|---|---|---|---|
+| Greenhouse | 8.333 | 17 | 3.024 | 36.3% |
+| iCIMS | 10.108 | 14 | 7.701 | 76.2% |
+| Lever | 4.368 | 7 | 2.410 | 55.2% |
+| Ashby | 3.161 | 18 | 696 | 22.0% |
+| Workday | 12.884 | 61 | 7.289 | 56.6% |
+| **Totale** | **38.854** | **117** | — | — |
+
+**Il volume reale è 5-10x la stima del Task 0** (10-25/settimana stimati, 117 misurati in un solo passaggio con `--since 8`). La soglia di triage resta a `3.5` per ora — il volume più alto rende il gate tutt'altro che teatro — ma `weekly_full_evaluations: 25` andrà probabilmente rivisto una volta visto quanti di questi 117 superano il triage.
+
+**Il tasso di irraggiungibili supera il 20% su 4 sorgenti su 5, isolate.** Questi run erano sequenziali e a sorgente singola — non il pattern "due sweep ravvicinati sullo stesso host" che il design a un giorno per sorgente doveva risolvere. L'ipotesi che l'isolamento per giorno riduca il throttling **non è confermata da questi dati**: il tasso alto persiste anche a sorgente isolata. Causa non ancora indagata (throttling IP dei runner GitHub, o board effettivamente morte/spostate nei dataset). Prima di fidarsi del volume misurato come tetto, andrebbe capito se il 22-76% di irraggiungibili nasconde altri match.
+
+**Una passata reale (non dry-run) su Lever** (Task 7, Step 3) ha prodotto 7 righe `scan: ats-sweep` in `data/pipeline.md`, committate dal workflow. La verifica che il gate le prenda in carico (Step 4) è demandata al prossimo run schedulato di `job-search.yml`, non forzata a mano — vedi se `data/triage-rejected.tsv` e la sezione "Scartate dal triage" del digest del giorno dopo riflettono queste 7 offerte.
+
+**Il cron di `ats-sweep.yml` resta commentato** (Step 5 del piano) finché lo Step 4 non è verificato.
