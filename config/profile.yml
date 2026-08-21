@@ -70,6 +70,10 @@ career_score:
     low_priority: 45
   # Tetto di valutazioni complete per run: la valvola di controllo costi.
   max_full_evaluations: 15
+  # Tetto sulla finestra mobile di 7 giorni. max_full_evaluations e' PER RUN e
+  # il cron e' giornaliero: da solo lascerebbe passare fino a 105 valutazioni
+  # a settimana.
+  weekly_full_evaluations: 25
   # Ordine di preferenza geografica. Alimenta la dimensione "geography".
   geography_priority:
     - "Italy"

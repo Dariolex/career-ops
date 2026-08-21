@@ -278,6 +278,13 @@ cover_letter:
 # pipeline:
 #   triage_threshold: 3.5
 #   triage_min_urls: 5
+#
+# career_score:
+#   # Cap on full evaluations per run — the cost-control valve.
+#   max_full_evaluations: 15
+#   # Cap on the 7-day rolling window. max_full_evaluations is PER RUN and the
+#   # cron is daily, so alone it would let up to 105/week through.
+#   weekly_full_evaluations: 25
 
 # ── Re-apply Cooldown Windows ──────────────────────────────────────────────
 #

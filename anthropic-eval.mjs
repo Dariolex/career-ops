@@ -18,7 +18,7 @@
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 import { evaluateCareerScore } from './career-score.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
