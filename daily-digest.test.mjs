@@ -1,4 +1,4 @@
-import { renderDigest, collectEntries, collectNeedsReview } from './daily-digest.mjs';
+import { renderDigest, collectEntries, collectNeedsReview, collectTriageRejected } from './daily-digest.mjs';
 import { mkdtempSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -168,6 +168,36 @@ try {
   ok('senza voci da verificare la sezione non appare', !digestWithoutReview.includes('Da verificare manualmente'));
 } finally {
   rmSync(needsReviewDir, { recursive: true, force: true });
+}
+
+// --- triage-rejected: collectTriageRejected + sezione nel digest ---
+
+const triageRejectedDir = mkdtempSync(join(tmpdir(), 'career-ops-triage-rejected-'));
+try {
+  const tsvPath = join(triageRejectedDir, 'triage-rejected.tsv');
+  writeFileSync(tsvPath, [
+    'https://example.com/job-basso\t2026-08-19\t2.1\tfuori archetipo',
+    'https://example.com/job-vecchio\t2026-08-18\t1.5\tannuncio scaduto',
+    'https://example.com/job-medio\t2026-08-19\t3.2\tadiacente ma non centrato',
+  ].join('\n') + '\n', 'utf-8');
+
+  const todaysRejected = collectTriageRejected('2026-08-19', tsvPath);
+  ok('collectTriageRejected filtra per data', todaysRejected.length === 2);
+  ok('collectTriageRejected esclude righe di altre date', !todaysRejected.some(i => i.url === 'https://example.com/job-vecchio'));
+  ok('collectTriageRejected estrae il punteggio', todaysRejected.some(i => i.score === 3.2));
+
+  const emptyRejected = collectTriageRejected('2026-08-19', join(triageRejectedDir, 'assente.tsv'));
+  ok('collectTriageRejected su file assente restituisce array vuoto', emptyRejected.length === 0);
+
+  const digestWithRejected = renderDigest({ date: '2026-08-19', entries: [], triageRejected: todaysRejected });
+  ok('il digest include la sezione "Scartate dal triage"', digestWithRejected.includes('Scartate dal triage'));
+  ok('il digest elenca la URL scartata', digestWithRejected.includes('https://example.com/job-basso'));
+  ok('il digest ordina per punteggio decrescente', digestWithRejected.indexOf('3.2/5') < digestWithRejected.indexOf('2.1/5'));
+
+  const digestWithoutRejected = renderDigest({ date: '2026-08-19', entries: [], triageRejected: [] });
+  ok('senza scarti la sezione non appare', !digestWithoutRejected.includes('Scartate dal triage'));
+} finally {
+  rmSync(triageRejectedDir, { recursive: true, force: true });
 }
 
 console.log(`\n${passed} passed, ${failed} failed`);

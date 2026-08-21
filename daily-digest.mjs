@@ -14,6 +14,7 @@ import { evaluateCareerScore } from './career-score.mjs';
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const NEEDS_REVIEW_PATH = join(ROOT, 'data', 'needs-manual-review.tsv');
+const TRIAGE_REJECTED_PATH = join(ROOT, 'data', 'triage-rejected.tsv');
 
 const ORDER = { APPLY: 0, CONSIDER: 1, LOW_PRIORITY: 2, REJECT: 3 };
 
@@ -83,17 +84,44 @@ function renderNeedsReviewSection(needsReview) {
 }
 
 /**
- * @param {{date: string, entries: Array<Object>, needsReview?: Array<Object>}} input
+ * Offerte scartate oggi dal gate di triage (lib/triage-gate.mjs).
+ *
+ * Il gate giudica sui soli metadati ed e' quindi tarato permissivo: gli scarti
+ * vanno mostrati, non nascosti — altrimenti il digest realizza la sparizione
+ * silenziosa che il design del gate vuole evitare. Togliere la riga da
+ * data/triage-rejected.tsv rimette l'offerta in gioco al run successivo.
+ */
+function renderTriageRejectedSection(triageRejected) {
+  if (!triageRejected || triageRejected.length === 0) return [];
+  const sorted = [...triageRejected].sort((a, b) => b.score - a.score);
+  const lines = [
+    `## Scartate dal triage (${sorted.length})`,
+    '',
+    'Giudicate sui soli metadati, sotto la soglia di passaggio. Per rimetterne',
+    'una in gioco, togli la sua riga da `data/triage-rejected.tsv`.',
+    '',
+  ];
+  for (const item of sorted) {
+    lines.push(`- **${item.score}/5** — ${item.reason} — [annuncio](${item.url})`);
+  }
+  lines.push('', '---', '');
+  return lines;
+}
+
+/**
+ * @param {{date: string, entries: Array<Object>, needsReview?: Array<Object>, triageRejected?: Array<Object>}} input
  * @returns {string} Markdown del digest.
  */
-export function renderDigest({ date, entries, needsReview }) {
+export function renderDigest({ date, entries, needsReview, triageRejected }) {
   const header = [`# Career Intelligence — ${date}`, ''];
   const needsReviewSection = renderNeedsReviewSection(needsReview);
+  const triageRejectedSection = renderTriageRejectedSection(triageRejected);
 
   if (!entries || entries.length === 0) {
     return [
       ...header,
       ...needsReviewSection,
+      ...triageRejectedSection,
       'Nessuna offerta rilevante trovata oggi.',
       '',
       'Per un profilo AI Governance e privacy senior è un esito normale: le posizioni',
@@ -122,6 +150,7 @@ export function renderDigest({ date, entries, needsReview }) {
     '',
     ...sorted.map(renderEntry),
     ...needsReviewSection,
+    ...triageRejectedSection,
   ].join('\n');
 }
 
@@ -187,6 +216,28 @@ export function collectNeedsReview(date, pathOverride) {
   return items;
 }
 
+/**
+ * Legge data/triage-rejected.tsv e restituisce le righe del giorno dato.
+ * Formato riga: url\tdata ISO\tpunteggio\tmotivazione (append-only, scritto da
+ * lib/triage-gate.mjs via run-evaluations.mjs quando un'offerta da sweep non
+ * supera la soglia di triage).
+ * @param {string} date - YYYY-MM-DD
+ * @param {string} [pathOverride] - percorso del file da leggere (per i test)
+ */
+export function collectTriageRejected(date, pathOverride) {
+  const path = pathOverride || TRIAGE_REJECTED_PATH;
+  if (!existsSync(path)) return [];
+  const text = readFileSync(path, 'utf-8');
+  const items = [];
+  for (const line of text.split('\n')) {
+    if (!line.trim()) continue;
+    const [url, rowDate, score, reason] = line.split('\t');
+    if (rowDate?.trim() !== date) continue;
+    items.push({ url: url?.trim(), date: rowDate?.trim(), score: Number.parseFloat(score), reason: reason?.trim() });
+  }
+  return items;
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const date = process.argv[2] || new Date().toISOString().slice(0, 10);
   const outDir = join(ROOT, 'reports', 'daily');
@@ -196,6 +247,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
     date,
     entries: collectEntries(date),
     needsReview: collectNeedsReview(date),
+    triageRejected: collectTriageRejected(date),
   }), 'utf-8');
   console.log(`📄  Digest scritto: ${outPath}`);
 }
