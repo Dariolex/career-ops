@@ -1,0 +1,121 @@
+name: ATS Sweep
+
+# Una sorgente ATS per giorno feriale. Ogni board resta spazzata una volta a
+# settimana — stessa copertura di uno sweep unico — ma ogni run e' breve e
+# autonomo: niente timeout, niente --resume, niente checkpoint da far
+# sopravvivere fra un run e l'altro (data/cache/ non viene committato).
+#
+# Riduce anche il throttling: Greenhouse, Lever e Ashby stanno ciascuno dietro
+# un host unico, e due sweep ravvicinati sullo stesso host hanno fatto salire
+# gli irraggiungibili di Lever da 2.436 a 4.100, con i match persi in silenzio.
+# Dando a ognuno il suo giorno, nessuno viene colpito due volte ravvicinate.
+on:
+  # Attivare solo dopo aver provato a mano ogni sorgente (Task 7, Step 2).
+  # schedule:
+  #   - cron: '0 7 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      ats:
+        description: 'Sorgente da spazzare (vuoto = quella del giorno)'
+        type: string
+        default: ''
+      dry_run:
+        description: 'Esegue senza scrivere e senza committare'
+        type: boolean
+        default: false
+
+# Mai in parallelo con il job giornaliero: scrivono entrambi su data/.
+concurrency:
+  group: job-search
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate portals configuration
+        run: node validate-portals.mjs
+
+      - name: Scegli la sorgente del giorno
+        id: pick
+        run: |
+          ATS="${{ inputs.ats }}"
+          if [ -z "$ATS" ]; then
+            case "$(date -u +%u)" in
+              1) ATS=greenhouse ;;
+              2) ATS=lever ;;
+              3) ATS=ashby ;;
+              4) ATS=workday ;;
+              5) ATS=icims ;;
+              *) echo "Weekend: nessuno sweep." ; echo "ats=" >> "$GITHUB_OUTPUT" ; exit 0 ;;
+            esac
+          fi
+          echo "Sorgente del giorno: $ATS"
+          echo "ats=$ATS" >> "$GITHUB_OUTPUT"
+
+      # --since 8: il ciclo e' di 7 giorni, l'ottavo e' il margine.
+      - name: Sweep
+        if: ${{ steps.pick.outputs.ats != '' }}
+        run: |
+          node scan-ats-full.mjs \
+            --ats "${{ steps.pick.outputs.ats }}" \
+            --since 8 \
+            ${{ inputs.dry_run && '--dry-run' || '' }} \
+            --json > sweep-result.json
+          cat sweep-result.json
+
+      # Uno sweep strozzato perde match SENZA errore: deve sembrare degradato,
+      # non vuoto. Le chiavi sono quelle emesse da scan-ats-full.mjs.
+      - name: Job summary
+        if: ${{ always() && steps.pick.outputs.ats != '' }}
+        run: |
+          {
+            echo "## Sweep ATS — ${{ steps.pick.outputs.ats }}"
+            echo ""
+            node -e "
+              const r = JSON.parse(require('fs').readFileSync('sweep-result.json','utf-8'));
+              console.log('- Board interrogate:', r.companiesScanned, 'su', r.companiesAvailable);
+              console.log('- Annunci tenuti:', r.postingsKept);
+              console.log('- Board irraggiungibili:', r.unreachableBoards);
+              console.log('- Dataset:', r.datasetStatus);
+              console.log('');
+              if (r.stoppedByOutage) console.log('> ATTENZIONE: sweep interrotto da un guasto di rete, sorgenti non completate.');
+              if (r.unreachableBoards > r.companiesScanned * 0.2)
+                console.log('> ATTENZIONE: oltre il 20% di board irraggiungibili. Probabile throttling: i match su quelle board sono stati persi in silenzio.');
+            " || echo "- (riepilogo non disponibile: sweep fallito prima di produrre il JSON)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit results
+        if: ${{ steps.pick.outputs.ats != '' && inputs.dry_run != true }}
+        run: |
+          git config user.name "career-intel-bot"
+          git config user.email "noreply@github.com"
+          for path in \
+            data/pipeline.md \
+            data/scan-history.tsv \
+            data/scan-runs.tsv \
+          ; do
+            git add -f "$path" || true
+          done
+          if git diff --staged --quiet; then
+            echo "Nessuna modifica da committare."
+          else
+            git commit -m "chore: sweep ATS ${{ steps.pick.outputs.ats }} $(date -u +%F) [skip ci]"
+            git push
+          fi
