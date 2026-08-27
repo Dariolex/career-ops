@@ -20,4 +20,6 @@ Paste job URLs below as `- [ ] {url}` then run `/career-ops pipeline`.
 - [ ] https://jobs.lever.co/jobgether/8114c40b-06ba-4a77-b10f-ce8fc4e19973 | jobgether | Senior Legal Executive/General Counsel Coach | Netherlands | posted: 2026-08-17 | scan: ats-sweep
 - [ ] https://jobs.lever.co/websummit/2666ecbb-1479-4aaa-8c6e-ca1acdd02224 | websummit | Workforce Contracts and Compliance Manager | Dublin | posted: 2026-08-13 | scan: ats-sweep
 
+- [ ] https://job-boards.eu.greenhouse.io/scalapaysrl/jobs/4961983101 | Scalapay | Junior Legal Counsel - Regulatory and Complaints handling (12-month fixed-term contract) | Milan, Italy | posted: 2026-08-27 | scan: tracked
+
 ## Processed
