@@ -22,4 +22,7 @@ Paste job URLs below as `- [ ] {url}` then run `/career-ops pipeline`.
 
 - [ ] https://job-boards.eu.greenhouse.io/scalapaysrl/jobs/4961983101 | Scalapay | Junior Legal Counsel - Regulatory and Complaints handling (12-month fixed-term contract) | Milan, Italy | posted: 2026-08-27 | scan: tracked
 
+- [ ] https://jobs.ashbyhq.com/satispay/c1931dd6-099b-4c59-b572-38187a46e976 | Satispay | AML/CTF Compliance Officer | Luxembourg, Luxembourg | posted: 2026-08-31 | scan: tracked
+- [ ] https://jobs.ashbyhq.com/satispay/655fbe27-210f-4a28-ae32-c1a017cefd3f | Satispay | Regulatory Compliance Officer | Luxembourg, Luxembourg | posted: 2026-08-31 | scan: tracked
+
 ## Processed
