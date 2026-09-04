@@ -25,4 +25,6 @@ Paste job URLs below as `- [ ] {url}` then run `/career-ops pipeline`.
 - [ ] https://jobs.ashbyhq.com/satispay/c1931dd6-099b-4c59-b572-38187a46e976 | Satispay | AML/CTF Compliance Officer | Luxembourg, Luxembourg | posted: 2026-08-31 | scan: tracked
 - [ ] https://jobs.ashbyhq.com/satispay/655fbe27-210f-4a28-ae32-c1a017cefd3f | Satispay | Regulatory Compliance Officer | Luxembourg, Luxembourg | posted: 2026-08-31 | scan: tracked
 
+- [ ] https://n26.com/en-eu/careers/positions/8169035?gh_jid=8169035 | N26 | ICT GRC – Risk & Compliance Manager | Berlin | posted: 2026-09-03 | scan: tracked
+
 ## Processed
