@@ -27,4 +27,6 @@ Paste job URLs below as `- [ ] {url}` then run `/career-ops pipeline`.
 
 - [ ] https://n26.com/en-eu/careers/positions/8169035?gh_jid=8169035 | N26 | ICT GRC – Risk & Compliance Manager | Berlin | posted: 2026-09-03 | scan: tracked
 
+- [ ] https://job-boards.greenhouse.io/adyen/jobs/8152818 | Adyen | Compliance Officer - Growth Programs | Amsterdam | posted: 2026-09-04 | scan: tracked
+
 ## Processed
