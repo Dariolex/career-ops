@@ -29,4 +29,6 @@ Paste job URLs below as `- [ ] {url}` then run `/career-ops pipeline`.
 
 - [ ] https://job-boards.greenhouse.io/adyen/jobs/8152818 | Adyen | Compliance Officer - Growth Programs | Amsterdam | posted: 2026-09-04 | scan: tracked
 
+- [ ] https://stripe.com/jobs/search?gh_jid=8188321 | Stripe | EMEA Chief Compliance Officer | London, Dublin | posted: 2026-09-11 | scan: tracked
+
 ## Processed
